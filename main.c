@@ -5,6 +5,7 @@
 
 
 #include "platform/platform.h"
+#include "processor/cpu.h"
 
 // TODO: checksums 
 void verify_cartridge_header(const u8 *p_cartridge){
@@ -35,6 +36,9 @@ int main(){
 	}
 
 	verify_cartridge_header(cartridge.rom);
+
+	CPU cpu = init_cpu();
+	
 
 	free(cartridge.rom);
 	

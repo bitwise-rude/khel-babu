@@ -1,0 +1,35 @@
+/*
+    CPU is an 8 bit 8080-like CPU
+
+*/
+# pragma once
+
+#include <stdlib.h>
+#include <stdint.h>
+
+typedef uint8_t u8;
+typedef uint16_t u16;
+
+
+typedef union {
+    struct {
+     u8 hi;
+     u8 lo;
+    };
+     u16 value;
+} REG16;
+
+typedef struct
+{
+    
+    // registers
+    REG16 AF;
+    REG16 BC;
+    REG16 DE;
+    REG16 HL;
+    REG16 SP;
+    REG16 PC;
+
+}CPU;
+
+CPU init_cpu(void);
