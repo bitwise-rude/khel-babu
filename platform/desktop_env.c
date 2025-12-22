@@ -1,7 +1,7 @@
 /* _____ Platform Specific Module -------
  *
  * 	For Windows and Linux (Desktop based OS)
- *
+ *      (Tested in linux - debian)
  */
 
 #include "platform.h"
