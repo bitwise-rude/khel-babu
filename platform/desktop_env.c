@@ -11,7 +11,7 @@
 #define FILE_TO_LOAD "test_roms/test.gb"
 
 /* Uses the OS to read a rom (.bin) file and return the contents */
-u8 *load_cartidge() {
+u8 *load_cartridge() {
 	FILE *fp = fopen(FILE_TO_LOAD, "rb");
 
 	if (fp == NULL) {
