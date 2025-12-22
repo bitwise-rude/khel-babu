@@ -11,18 +11,19 @@
 #define FILE_TO_LOAD "test_roms/test.gb"
 
 /* Uses the OS to read a rom (.bin) file and return the contents */
-u8 *load_cartridge() {
+Cartridge load_cartridge() {
 	FILE *fp = fopen(FILE_TO_LOAD, "rb");
+	Cartridge cartridge = {.rom = NULL, .length = 0};
 
 	if (fp == NULL) {
 		perror("Error in opening the file");
-		return NULL;
+		return cartridge;
 	}
 
 	if (fseek(fp, 0L, SEEK_END) != 0){
 		perror("Error seeking to the end of the file ");
 		fclose(fp);
-		return NULL;
+		return cartridge;
 	}
 
 	long size = ftell(fp);
@@ -30,21 +31,21 @@ u8 *load_cartridge() {
 	if (size == -1){
 		perror("Error getting file size");
 		fclose(fp);
-		return NULL;
+		return cartridge;
 	}
 
 
 	if (fseek(fp, 0L,  SEEK_SET) != 0) {
 		perror("Error seeking to the end");
 		fclose(fp);
-		return NULL;
+		return cartridge;
 	}
 
 	u8 *pcartidge = (u8 *) malloc(size);
 	if(pcartidge == NULL){
 		perror("Error allocating memory");
 		fclose(fp);
-		return NULL;
+		return cartridge;
 	}
 
 
@@ -54,9 +55,9 @@ u8 *load_cartridge() {
 	if((long) elements_read != size){
 		perror("Some error occured while reading the file");
 		free(pcartidge);
-		return NULL;
+		return cartridge;
 	}
 
-	return pcartidge;
+	return (Cartridge) {.rom = pcartidge, .length=elements_read};
 		 
 }

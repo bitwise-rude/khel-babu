@@ -27,16 +27,16 @@ void verify_cartridge_header(const u8 *p_cartridge){
 
 int main(){
 	
-	u8 *p_cartridge = load_cartridge();
+	Cartridge cartridge = load_cartridge();
 	
-	if (p_cartridge  == NULL){
+	if (cartridge.rom  == NULL){
 		perror("FILE LOADING ERROR");
 		exit(1);
 	}
 
-	verify_cartridge_header(p_cartridge);
+	verify_cartridge_header(cartridge.rom);
 
-	free(p_cartridge);
+	free(cartridge.rom);
 	
 }
 

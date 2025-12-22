@@ -5,6 +5,7 @@
  *  		
  */
 
+#pragma once
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -12,5 +13,10 @@
 typedef uint8_t u8;
 typedef uint16_t u16;
 
+typedef struct {
+    u8 *rom;
+    size_t length;
+} Cartridge;
+
 // load cratidge rom data and return the array to the cartidge
-u8 *load_cartridge(void);	
+Cartridge load_cartridge(void);	
