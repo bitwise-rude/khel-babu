@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g
 
-SRCS =  main.c
+SRCS =  main.c platform/desktop_env.c
 
 OBJS = $(SRCS:.c=.o)
 
