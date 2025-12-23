@@ -28,19 +28,13 @@ typedef struct
 
 }CPU;
 
-static CPU init_cpu(Memory *p_mem){
-    return (CPU) {
-        .PC = 0x100,
-        .p_memory = p_mem
-    };
-}
+
+ CPU init_cpu(Memory *p_mem);
 
 typedef struct {
     char name[10];
-    u8 code;
 
-    u8 nobranch_tstates;
-    u8 branch_tstates;
+    u8 t_states;
 
     void (*opcode_method)();
 }Opcode;

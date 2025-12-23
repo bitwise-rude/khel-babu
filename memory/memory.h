@@ -32,17 +32,17 @@ static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
 
 }
 
-static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
-        if (addr > 0x0000 && addr < 0x8000){
-        // Cartridge Rom
-        printf("WRITING DATA TO CARTRIDGE ROM AT: %x\n and Value: %x",addr,data);
-        p_mem->p_cartidge->rom[addr];
-    }
+// static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
+//         if (addr > 0x0000 && addr < 0x8000){
+//         // Cartridge Rom
+//         printf("WRITING DATA TO CARTRIDGE ROM AT: %x\n and Value: %x",addr,data);
+//         p_mem->p_cartidge->rom[addr];
+//     }
 
-    else{
-        printf("Writing Unimplemented memory location %x\n",addr);
-        exit(1);
-    }
-}
+//     else{
+//         printf("Writing Unimplemented memory location %x\n",addr);
+//         exit(1);
+//     }
+// }
 
 
