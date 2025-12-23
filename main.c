@@ -42,7 +42,7 @@ int main(){
 	Memory memory = (Memory) {.p_cartidge = &cartridge};
 
 	CPU cpu = init_cpu(&memory);
-	for (int i = 0; i<=10; i++){
+	for (int i = 0; i<=1; i++){
 		step_cpu(&cpu);
 	}
 

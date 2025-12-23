@@ -18,7 +18,7 @@ typedef struct
     Cartridge *p_cartidge;
 }Memory;
 
-static inline u8  memory_read_8(Memory *p_mem, u16 addr){
+static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
     if (addr > 0x0000 && addr < 0x8000){
         // Cartridge Rom
         printf("READING DATA FROM CARTRIDGE ROM AT: %x\n",addr);
@@ -32,7 +32,7 @@ static inline u8  memory_read_8(Memory *p_mem, u16 addr){
 
 }
 
-static inline void memory_write(Memory *p_mem, u16 addr, u8 data){
+static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
         if (addr > 0x0000 && addr < 0x8000){
         // Cartridge Rom
         printf("WRITING DATA TO CARTRIDGE ROM AT: %x\n and Value: %x",addr,data);

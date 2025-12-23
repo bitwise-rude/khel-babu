@@ -3,7 +3,6 @@
 
 */
 #pragma once
-
 #include <stdlib.h>
 #include <stdint.h>
 #include "../memory/memory.h"
@@ -29,5 +28,24 @@ typedef struct
 
 }CPU;
 
-CPU init_cpu(Memory *p_mem);
+static CPU init_cpu(Memory *p_mem){
+    return (CPU) {
+        .PC = 0x100,
+        .p_memory = p_mem
+    };
+}
+
+typedef struct {
+    char name[10];
+    u8 code;
+
+    u8 nobranch_tstates;
+    u8 branch_tstates;
+
+    void (*opcode_method)();
+}Opcode;
+
+
+
+
 void step_cpu(CPU *);

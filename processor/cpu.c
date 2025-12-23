@@ -1,11 +1,15 @@
 #include "cpu.h"
 
-CPU init_cpu(Memory *p_mem){
-    return (CPU) {
-        .PC = 0x100,
-        .p_memory = p_mem
-    };
+
+// opcode functions
+static inline void nop(struct CPU *cpu){
+    // do nothing
 }
+
+static Opcode opcodes[256]= {
+    {"NOP",0x00,4,0,&nop}
+};
+
 
 // steps the CPU
 void step_cpu(CPU *cpu){
@@ -17,5 +21,9 @@ void step_cpu(CPU *cpu){
     cpu->PC += 1;
 
     // execute the instruction
+    Opcode to_exec = opcodes[opcode];
+    printf("EXECUTING THE INSTRUCTION %s\n\n",to_exec.name);
+    to_exec.opcode_method(cpu);
+
 
 }
