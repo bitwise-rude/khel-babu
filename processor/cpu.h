@@ -26,6 +26,9 @@ typedef struct
     Memory *p_memory;
     size_t t_states;
 
+    //interrupts
+    u8 IME;
+
 }CPU;
 
 

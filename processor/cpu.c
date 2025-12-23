@@ -22,9 +22,15 @@ static inline void jp_a16( CPU *cpu){
     cpu -> PC = (hi << 8) | lo;
 }
 
+static inline void di( CPU *cpu){
+    cpu->IME = 0;
+}
+
+
 static Opcode opcodes[256]= {
     [0] = {"NOP",4,&nop},
     [0xc3] = {"JP a16",4,&jp_a16},
+    [0xf3] = {"DI",1, &di}
 };
 
 
@@ -34,7 +40,7 @@ void step_cpu(CPU *cpu){
     u8 opcode = memory_read_8(cpu->p_memory, cpu->PC);
     printf("\nOPCODE FETCHED IS: %o in oct and %x in hex\n", opcode, opcode);
 
-    // increment the PC
+    // next instructions
     cpu->PC += 1;
 
     // execute the instruction
