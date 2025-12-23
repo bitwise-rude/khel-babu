@@ -6,8 +6,9 @@
 
 #include "platform/platform.h"
 #include "processor/cpu.h"
+#include "memory/memory.h"
 
-// TODO: checksums 
+// TODO: perform checksums and switchable banks
 void verify_cartridge_header(const u8 *p_cartridge){
 	// get the title of the cartidge
 	char title[17] = {0};
@@ -37,8 +38,13 @@ int main(){
 
 	verify_cartridge_header(cartridge.rom);
 
-	CPU cpu = init_cpu();
-	
+	// make memory out of cartidge
+	Memory memory = (Memory) {.p_cartidge = &cartridge};
+
+	CPU cpu = init_cpu(&memory);
+	for (int i = 0; i<=10; i++){
+		step_cpu(&cpu);
+	}
 
 	free(cartridge.rom);
 	

@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include "../memory/memory.h"
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -30,6 +31,10 @@ typedef struct
     REG16 SP;
     REG16 PC;
 
+    // memory
+    Memory *p_memory;
+
 }CPU;
 
-CPU init_cpu(void);
+CPU init_cpu(Memory *p_mem);
+void step_cpu(CPU *);
