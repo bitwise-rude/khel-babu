@@ -16,6 +16,7 @@ typedef uint16_t  u16;
 typedef struct
 {
     Cartridge *p_cartidge;
+    u8 WRAM[0x1000];
 }Memory;
 
 static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
@@ -25,6 +26,13 @@ static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
         return p_mem->p_cartidge->rom[addr];
     }
 
+    else if (addr >= 0xC000 && addr <= 0xDFFF){
+        // WRAM 
+        printf("READING DATA FROM RAM AT: %x\n",addr);
+        return p_mem -> WRAM[addr - 0xC000];
+    }
+
+
     else{
         printf("Reading Unimplemented memory location %x\n",addr);
         exit(1);
@@ -32,17 +40,23 @@ static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
 
 }
 
-// static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
-//         if (addr > 0x0000 && addr < 0x8000){
-//         // Cartridge Rom
-//         printf("WRITING DATA TO CARTRIDGE ROM AT: %x\n and Value: %x",addr,data);
-//         p_mem->p_cartidge->rom[addr];
-//     }
+static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
+        if (addr > 0x0000 && addr < 0x8000){
+        // Cartridge Rom
+        printf("WRITING DATA TO CARTRIDGE ROM AT: %x and Value: %x\n",addr,data);
+        p_mem->p_cartidge->rom[addr] = data;
+    }
 
-//     else{
-//         printf("Writing Unimplemented memory location %x\n",addr);
-//         exit(1);
-//     }
-// }
+    else if (addr >= 0xC000 && addr <= 0xDFFF){
+        // WRAM 
+        printf("WRITING DATA TO RAM AT: %x and Value: %x\n",addr,data);
+        p_mem -> WRAM[addr - 0xC000] = data;
+    }
+
+    else{
+        printf("Writing Unimplemented memory location %x\n",addr);
+        exit(1);
+    }
+}
 
 
