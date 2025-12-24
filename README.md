@@ -9,3 +9,7 @@ You can contribute by contacting me through my FB profile in github
 or through e-mail: dareludum@gmail.com
 
 ### Thank You
+
+# References That I am currently Using
+https://gbdev.io/pandocs/Memory_Map.html
+https://meganesu.github.io/generate-gb-opcodes/

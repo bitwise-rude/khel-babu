@@ -15,16 +15,16 @@ typedef struct
 {
     
     // registers
-    // REG16 AF;
-    // REG16 BC;
-    // REG16 DE;
-    // REG16 HL;
-    // REG16 SP;
-    u16 PC;
+    u16 AF;
+    u16 BC;
+    u16 DE;
+    u16 HL;
+    u16 PC; // program counter
+    u16 SP; // stack pointer
 
     // memory
     Memory *p_memory;
-    size_t t_states;
+    size_t cycles;
 
     //interrupts
     u8 IME;
@@ -37,7 +37,7 @@ typedef struct
 typedef struct {
     char name[10];
 
-    u8 t_states;
+    u8 cycles;
 
     void (*opcode_method)();
 }Opcode;
