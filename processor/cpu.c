@@ -1,7 +1,10 @@
 #include "cpu.h"
 
+/* Helper Macros */
+#define low (a) (u8)(a & 0x00FF) 
+#define high(a) (u8) ((a & 0xFF00) >> 8)
 
-
+// combines two bytes into a 16 bit word
 static inline u16 combine_bytes(u8 hi, u8 lo)
 {
     return ((u16)hi << 8) | lo;
@@ -10,27 +13,27 @@ static inline u16 combine_bytes(u8 hi, u8 lo)
 
 CPU init_cpu(Memory *p_mem){
     return (CPU) {
-        .PC = 0x100,
+        .PC.val = 0x100,
         .p_memory = p_mem
     };
 }
 
 /* Helper functions */
 static inline u8 get_next_8(CPU *cpu){
-     return memory_read_8(cpu->p_memory,cpu->PC);
+     return memory_read_8(cpu->p_memory,cpu->PC.val);
 }
 
 static inline u16 get_next_16(CPU *cpu){
     u8 lo = get_next_8(cpu);
-    cpu -> PC ++;
+    cpu-> PC.val ++;
     u8 hi = get_next_8(cpu);
 
     return combine_bytes(hi,lo);
 }
 
 static inline void push(CPU *cpu, u8 val){
-    cpu-> SP --;
-    memory_write(cpu->p_memory, cpu->SP, val);
+    cpu-> SP.val --;
+    memory_write(cpu->p_memory, cpu->SP.val, val);
 }
 
 /*  Opcode Functions  */
@@ -41,7 +44,7 @@ static inline void nop(){
 static inline void jp_a16( CPU *cpu){
     // Jump to immediate 16 bit address
    
-    cpu -> PC =  get_next_16(cpu);
+    cpu -> PC.val =  get_next_16(cpu);
 }
 
 static inline void di( CPU *cpu){
@@ -51,32 +54,32 @@ static inline void di( CPU *cpu){
 
 static inline void ld_sp_16(CPU *cpu){
     // sets LD to the immediate register value
-    cpu->SP = get_next_16(cpu);
+    cpu->SP.val = get_next_16(cpu);
 }
 
 static inline void ld_bc_16(CPU *cpu){
     // sets LD to the immediate register value
-    cpu->BC = get_next_16(cpu);
+    cpu->BC.val = get_next_16(cpu);
 }
 
 static inline void ld_de_16(CPU *cpu){
     // sets LD to the immediate register value
-    cpu->DE = get_next_16(cpu);
+    cpu->DE.val = get_next_16(cpu);
 }
 static inline void ld_hl_16(CPU *cpu){
     // sets LD to the immediate register value
-    cpu->HL = get_next_16(cpu);
+    cpu->HL.val = get_next_16(cpu);
 }
 
 static inline void rst_helper(CPU *cpu, u16 addr){
     u8 hi = get_next_8(cpu);
-    cpu->PC ++;
+    cpu->PC.val ++;
     u8 lo = get_next_8(cpu);
 
     push(cpu, hi);
     push(cpu,lo);
 
-    cpu->PC = addr;
+    cpu->PC.val = addr;
 
 }
 
@@ -96,6 +99,10 @@ static inline void rst_4(CPU *cpu){
     rst_helper(cpu,0x38);
 }
 
+static inline void inc_a(CPU *cpu){
+    u8 val = cpu->AF.hi;
+
+}
 
 static Opcode opcodes[256]= {
     [0] = {"NOP",       4,      &nop},
@@ -119,11 +126,11 @@ static Opcode opcodes[256]= {
 // steps the CPU
 void step_cpu(CPU *cpu){
     // fetch from memory
-    u8 opcode = memory_read_8(cpu->p_memory, cpu->PC);
+    u8 opcode = memory_read_8(cpu->p_memory, cpu->PC.val);
     printf("\nOPCODE FETCHED IS: %o in oct and %x in hex\n", opcode, opcode);
 
     // next instructions
-    cpu->PC += 1;
+    cpu->PC.val += 1;
 
     // execute the instruction
     Opcode to_exec = opcodes[opcode];

@@ -10,17 +10,24 @@
 typedef uint8_t u8;
 typedef uint16_t u16;
 
+typedef union {
+    struct {
+        u8 lo;  
+        u8 hi;   
+    };
+    u16 val;
+} reg16;
 
 typedef struct
 {
     
     // registers
-    u16 AF;
-    u16 BC;
-    u16 DE;
-    u16 HL;
-    u16 PC; // program counter
-    u16 SP; // stack pointer
+    reg16 AF;
+    reg16 BC;
+    reg16 DE;
+    reg16 HL;
+    reg16 PC; // program counter
+    reg16 SP; // stack pointer
 
     // memory
     Memory *p_memory;
