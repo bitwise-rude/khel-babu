@@ -22,7 +22,7 @@ typedef struct
 static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
     if (addr > 0x0000 && addr < 0x8000){
         // Cartridge Rom
-        printf("READING DATA FROM CARTRIDGE ROM AT: %x\n",addr);
+        printf("READING DATA FROM CARTRIDGE ROM AT: %.4xH\n",addr);
         return p_mem->p_cartidge->rom[addr];
     }
 

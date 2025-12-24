@@ -4,6 +4,11 @@
 #define low (a) (u8)(a & 0x00FF) 
 #define high(a) (u8) ((a & 0xFF00) >> 8)
 
+#define ZERO 0x80
+#define SUBTRACT 0x40
+#define HALF_CARRY 0x20
+#define CARRY 0x10
+
 // combines two bytes into a 16 bit word
 static inline u16 combine_bytes(u8 hi, u8 lo)
 {
@@ -36,6 +41,11 @@ static inline void push(CPU *cpu, u8 val){
     memory_write(cpu->p_memory, cpu->SP.val, val);
 }
 
+static inline u8 pop(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->SP.val);
+    cpu-> SP.val ++;
+    return val;
+}
 /*  Opcode Functions  */
 static inline void nop(){
     // do nothing
@@ -76,8 +86,8 @@ static inline void rst_helper(CPU *cpu, u16 addr){
     cpu->PC.val ++;
     u8 lo = get_next_8(cpu);
 
-    push(cpu, hi);
-    push(cpu,lo);
+    push(cpu, lo);
+    push(cpu,hi);
 
     cpu->PC.val = addr;
 
@@ -99,9 +109,96 @@ static inline void rst_4(CPU *cpu){
     rst_helper(cpu,0x38);
 }
 
-static inline void inc_a(CPU *cpu){
+static inline void inc_a(CPU *cpu)
+{
     u8 val = cpu->AF.hi;
+    u8 res = val + 1;
 
+    cpu->AF.lo &= ~(ZERO | SUBTRACT | HALF_CARRY);
+
+    // Z flag
+    if (res == 0)
+        cpu->AF.lo |= ZERO;
+
+    // H flag
+    if ((val & 0x0F) == 0x0F)
+        cpu->AF.lo |= HALF_CARRY;
+
+
+    cpu->AF.lo &= 0xF0;
+
+    cpu->AF.hi = res;
+}
+
+static inline void inc_c(CPU *cpu)
+{
+    u8 val = cpu->BC.lo;
+    u8 res = val + 1;
+
+    cpu->AF.lo &= ~(ZERO | SUBTRACT | HALF_CARRY);
+
+    // Z flag
+    if (res == 0)
+        cpu->AF.lo |= ZERO;
+
+    // H flag
+    if ((val & 0x0F) == 0x0F)
+        cpu->AF.lo |= HALF_CARRY;
+
+
+    cpu->AF.lo &= 0xF0;
+
+    cpu->BC.lo = res;
+}
+
+static inline void inc_e(CPU *cpu)
+
+{
+    u8 val = cpu->DE.lo;
+    u8 res = val + 1;
+
+    cpu->AF.lo &= ~(ZERO | SUBTRACT | HALF_CARRY);
+
+    // Z flag
+    if (res == 0)
+        cpu->AF.lo |= ZERO;
+
+    // H flag
+    if ((val & 0x0F) == 0x0F)
+        cpu->AF.lo |= HALF_CARRY;
+
+
+    cpu->AF.lo &= 0xF0;
+
+    cpu->DE.lo = res;
+}
+
+static inline void inc_l(CPU *cpu)
+{
+    u8 val = cpu->HL.lo;
+    u8 res = val + 1;
+
+    cpu->AF.lo &= ~(ZERO | SUBTRACT | HALF_CARRY);
+
+    // Z flag
+    if (res == 0)
+        cpu->AF.lo |= ZERO;
+
+    // H flag
+    if ((val & 0x0F) == 0x0F)
+        cpu->AF.lo |= HALF_CARRY;
+
+
+    cpu->AF.lo &= 0xF0;
+
+    cpu->HL.lo = res;
+}
+
+static inline void ret(CPU *cpu){
+    u8 lo = pop(cpu);
+    u8 hi = pop(cpu);
+
+    cpu->PC.val = combine_bytes(hi,lo);
 }
 
 static Opcode opcodes[256]= {
@@ -119,6 +216,14 @@ static Opcode opcodes[256]= {
     [0xef] = {"RST 3", 4, &rst_3},
     [0xff] = {"RST 4", 4, &rst_4},
 
+    [0x3c] = {"INC A", 1, &inc_a},
+    [0x2c] = {"INC L", 1, &inc_l},
+    [0x1c] = {"INC E", 1, &inc_e},
+    [0x0c] = {"INC C", 1, &inc_c},
+
+    [0xc9] = {"RET", 4, &ret},
+
+
 
 };
 
@@ -127,14 +232,14 @@ static Opcode opcodes[256]= {
 void step_cpu(CPU *cpu){
     // fetch from memory
     u8 opcode = memory_read_8(cpu->p_memory, cpu->PC.val);
-    printf("\nOPCODE FETCHED IS: %o in oct and %x in hex\n", opcode, opcode);
+    printf("\nOPCODE FETCHED IS:  %.2xH \n",opcode);
 
     // next instructions
     cpu->PC.val += 1;
 
     // execute the instruction
     Opcode to_exec = opcodes[opcode];
-    if (to_exec.opcode_method != NULL) printf("EXECUTING THE INSTRUCTION %s\n\n",to_exec.name);
+    if (to_exec.opcode_method != NULL) printf("EXECUTING THE INSTRUCTION %s\n",to_exec.name);
     else {printf("NOT IMPLEMENTED\n"); exit(1);}
     to_exec.opcode_method(cpu);
     cpu->cycles += to_exec.cycles;
