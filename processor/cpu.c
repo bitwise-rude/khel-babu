@@ -46,6 +46,25 @@ static inline u8 pop(CPU *cpu){
     cpu-> SP.val ++;
     return val;
 }
+
+static inline void rst_helper(CPU *cpu, u16 addr){
+    u8 hi = get_next_8(cpu);
+    cpu->PC.val ++;
+    u8 lo = get_next_8(cpu);
+
+    push(cpu, lo);
+    push(cpu,hi);
+
+    cpu->PC.val = addr;
+
+}
+
+
+static inline void ld_r_r_helper(CPU *cpu, u8 *src, u8 *dst){
+    *dst = *src;
+}
+
+
 /*  Opcode Functions  */
 static inline void nop(){
     // do nothing
@@ -76,21 +95,10 @@ static inline void ld_de_16(CPU *cpu){
     // sets LD to the immediate register value
     cpu->DE.val = get_next_16(cpu);
 }
+
 static inline void ld_hl_16(CPU *cpu){
     // sets LD to the immediate register value
     cpu->HL.val = get_next_16(cpu);
-}
-
-static inline void rst_helper(CPU *cpu, u16 addr){
-    u8 hi = get_next_8(cpu);
-    cpu->PC.val ++;
-    u8 lo = get_next_8(cpu);
-
-    push(cpu, lo);
-    push(cpu,hi);
-
-    cpu->PC.val = addr;
-
 }
 
 static inline void rst_1(CPU *cpu){
@@ -200,6 +208,184 @@ static inline void ret(CPU *cpu){
 
     cpu->PC.val = combine_bytes(hi,lo);
 }
+
+static inline void ld_b_b(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->BC.hi, &cpu->BC.hi);
+}
+
+static inline void ld_b_c(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->BC.hi, &cpu->BC.lo);
+}
+
+static inline void ld_b_d(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->BC.hi, &cpu->DE.hi);
+}
+
+static inline void ld_b_e(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->BC.hi, &cpu->DE.lo);
+}
+
+static inline void ld_b_h(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->BC.hi, &cpu->HL.hi);
+}
+
+static inline void ld_b_l(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->BC.hi, &cpu->HL.lo);
+}
+
+static inline void ld_b_a(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->BC.hi, &cpu->AF.hi);
+}
+
+// ld c, reg
+
+static inline void ld_c_b(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->BC.lo, &cpu->BC.hi);
+}
+
+static inline void ld_c_c(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->BC.lo, &cpu->BC.lo);
+}
+
+static inline void ld_c_d(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->BC.lo, &cpu->DE.hi);
+}
+
+static inline void ld_c_e(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->BC.lo, &cpu->DE.lo);
+}
+
+static inline void ld_c_h(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->BC.lo, &cpu->HL.hi);
+}
+
+static inline void ld_c_l(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->BC.lo, &cpu->HL.lo);
+}
+
+static inline void ld_c_a(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->BC.lo, &cpu->AF.hi);
+}
+
+// ld d, reg
+static inline void ld_d_b(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->DE.hi, &cpu->BC.hi);
+}
+
+static inline void ld_d_c(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->DE.hi, &cpu->BC.lo);
+}
+
+static inline void ld_d_d(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->DE.hi, &cpu->DE.hi);
+}
+
+static inline void ld_d_e(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->DE.hi, &cpu->DE.lo);
+}
+
+static inline void ld_d_h(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->DE.hi, &cpu->HL.hi);
+}
+
+static inline void ld_d_l(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->DE.hi, &cpu->HL.lo);
+}
+
+static inline void ld_d_a(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->DE.hi, &cpu->AF.hi);
+}
+
+// ld e, reg
+
+static inline void ld_e_b(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->DE.lo, &cpu->BC.hi);
+}
+
+static inline void ld_e_c(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->DE.lo, &cpu->BC.lo);
+}
+
+static inline void ld_e_d(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->DE.lo, &cpu->DE.hi);
+}
+
+static inline void ld_e_e(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->DE.lo, &cpu->DE.lo);
+}
+
+static inline void ld_e_h(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->DE.lo, &cpu->HL.hi);
+}
+
+static inline void ld_e_l(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->DE.lo, &cpu->HL.lo);
+}
+
+static inline void ld_e_a(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->DE.lo, &cpu->AF.hi);
+}
+
+// ld h, reg
+static inline void ld_h_b(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->HL.hi, &cpu->BC.hi);
+}
+
+static inline void ld_h_c(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->HL.hi, &cpu->BC.lo);
+}
+
+static inline void ld_h_d(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->HL.hi, &cpu->DE.hi);
+}
+
+static inline void ld_h_e(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->HL.hi, &cpu->DE.lo);
+}
+
+static inline void ld_h_h(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->HL.hi, &cpu->HL.hi);
+}
+
+static inline void ld_h_l(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->HL.hi, &cpu->HL.lo);
+}
+
+static inline void ld_h_a(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->HL.hi, &cpu->AF.hi);
+}
+
+// ld l, reg
+
+static inline void ld_l_b(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->HL.lo, &cpu->BC.hi);
+}
+
+static inline void ld_l_c(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->HL.lo, &cpu->BC.lo);
+}
+
+static inline void ld_l_d(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->HL.lo, &cpu->DE.hi);
+}
+
+static inline void ld_l_e(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->HL.lo, &cpu->DE.lo);
+}
+
+static inline void ld_l_h(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->HL.lo, &cpu->HL.hi);
+}
+
+static inline void ld_l_l(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->HL.lo, &cpu->HL.lo);
+}
+
+static inline void ld_l_a(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->HL.lo, &cpu->AF.hi);
+}
+
+
 
 static Opcode opcodes[256]= {
     [0] = {"NOP",       4,      &nop},
