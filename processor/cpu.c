@@ -385,6 +385,95 @@ static inline void ld_l_a(CPU *cpu){
     ld_r_r_helper(cpu, &cpu->HL.lo, &cpu->AF.hi);
 }
 
+// ld a,reg
+
+
+static inline void ld_a_b(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->AF.hi, &cpu->BC.hi);
+}
+
+static inline void ld_a_c(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->AF.hi, &cpu->BC.lo);
+}
+
+static inline void ld_a_d(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->AF.hi, &cpu->DE.hi);
+}
+
+static inline void ld_a_e(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->AF.hi, &cpu->DE.lo);
+}
+
+static inline void ld_a_h(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->AF.hi, &cpu->HL.hi);
+}
+
+static inline void ld_a_l(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->AF.hi, &cpu->HL.lo);
+}
+
+static inline void ld_a_a(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->AF.hi, &cpu->AF.hi);
+}
+
+// ld r, M
+static inline void ld_b_m(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->BC.hi, get_address(cpu->p_memory, cpu->HL.val));
+}
+
+static inline void ld_d_m(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->DE.hi, get_address(cpu->p_memory, cpu->HL.val));
+}
+
+static inline void ld_h_m(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->HL.hi, get_address(cpu->p_memory, cpu->HL.val));
+}
+
+static inline void ld_c_m(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->BC.lo, get_address(cpu->p_memory, cpu->HL.val));
+}
+
+static inline void ld_e_m(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->DE.lo, get_address(cpu->p_memory, cpu->HL.val));
+}
+
+static inline void ld_l_m(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->HL.lo, get_address(cpu->p_memory, cpu->HL.val));
+}
+
+static inline void ld_a_m(CPU *cpu){
+    ld_r_r_helper(cpu, &cpu->AF.hi, get_address(cpu->p_memory, cpu->HL.val));
+}
+
+// ld M,reg
+static inline void ld_m_b(CPU *cpu){
+    ld_r_r_helper(cpu,get_address(cpu->p_memory, cpu->HL.val), &cpu->BC.hi);
+}
+
+static inline void ld_m_a(CPU *cpu){
+    ld_r_r_helper(cpu,get_address(cpu->p_memory, cpu->HL.val), &cpu->AF.hi);
+}
+
+static inline void ld_m_d(CPU *cpu){
+    ld_r_r_helper(cpu,get_address(cpu->p_memory, cpu->HL.val), &cpu->DE.hi);
+}
+
+static inline void ld_m_h(CPU *cpu){
+    ld_r_r_helper(cpu,get_address(cpu->p_memory, cpu->HL.val), &cpu->HL.hi);
+}
+
+static inline void ld_m_c(CPU *cpu){
+    ld_r_r_helper(cpu,get_address(cpu->p_memory, cpu->HL.val), &cpu->BC.lo);
+}
+
+static inline void ld_m_e(CPU *cpu){
+    ld_r_r_helper(cpu,get_address(cpu->p_memory, cpu->HL.val), &cpu->DE.lo);
+}
+
+static inline void ld_m_l(CPU *cpu){
+    ld_r_r_helper(cpu,get_address(cpu->p_memory, cpu->HL.val), &cpu->HL.lo);
+}
+
 
 
 static Opcode opcodes[256]= {
