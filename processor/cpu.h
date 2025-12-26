@@ -42,7 +42,7 @@ typedef struct
  CPU init_cpu(Memory *p_mem);
 
 typedef struct {
-    char name[10];
+    char name[15];
 
     u8 cycles;
 
