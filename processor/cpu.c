@@ -1346,8 +1346,8 @@ void step_cpu(CPU *cpu){
     // printf("NEXT\n");
     // scanf("%d",&i);
     // printf("\n");
-    // u8 opcode = memory_read_8(cpu->p_memory, cpu->PC.val);
-    // printf("\nOPCODE FETCHED IS:  %.2xH \n",opcode);
+    u8 opcode = memory_read_8(cpu->p_memory, cpu->PC.val);
+    printf("\nOPCODE FETCHED IS:  %.2xH \n",opcode);
 
     // next instructions
     cpu->PC.val += 1;

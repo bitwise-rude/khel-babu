@@ -13,6 +13,7 @@ or through e-mail: dareludum@gmail.com
 # TODO
 - use gb doctor python implementation
 - stop? 
+- Gambatte emulator see this 
 
 # References That I am currently Using
 https://gbdev.io/pandocs/Memory_Map.html
