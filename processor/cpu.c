@@ -11,6 +11,46 @@
 
 
 
+
+
+
+CPU init_cpu(Memory *p_mem){
+    return (CPU) {
+        .PC.val = 0x100,
+        .p_memory = p_mem,
+        .AF.hi = 0x01,
+        .AF.lo = 0xB0,
+        .BC.hi =	0x00,
+        .BC.lo =	0x13,
+        .DE.hi = 	0x00,
+        .DE.lo =	0xD8,
+        .HL.hi = 	0x01,
+        .HL.lo = 	0x4D,
+        .SP.val = 	0xFFFE
+
+    };
+}
+
+/* Helper functions */
+
+static inline void push(CPU *cpu, u8 val){
+    exit(0);
+    cpu-> SP.val --;
+    memory_write(cpu->p_memory, cpu->SP.val, val);
+}
+
+static inline u8 pop(CPU *cpu){
+    exit(0);
+    u8 val = memory_read_8(cpu->p_memory, cpu->SP.val);
+    cpu-> SP.val ++;
+    return val;
+}
+
+static inline void call_helper(CPU *cpu){
+    push(cpu, cpu->PC.hi);
+    push(cpu, cpu->PC.lo);
+}
+
 // combines two bytes into a 16 bit word
 static inline u16 combine_bytes(u8 hi, u8 lo)
 {
@@ -18,14 +58,6 @@ static inline u16 combine_bytes(u8 hi, u8 lo)
 }
 
 
-CPU init_cpu(Memory *p_mem){
-    return (CPU) {
-        .PC.val = 0x100,
-        .p_memory = p_mem
-    };
-}
-
-/* Helper functions */
 static inline u8 get_next_8(CPU *cpu){
      u8 val = memory_read_8(cpu->p_memory,cpu->PC.val);
      cpu->PC.val ++;
@@ -39,25 +71,15 @@ static inline u16 get_next_16(CPU *cpu){
     return combine_bytes(hi,lo);
 }
 
-static inline void push(CPU *cpu, u8 val){
-    cpu-> SP.val --;
-    memory_write(cpu->p_memory, cpu->SP.val, val);
-}
-
-static inline u8 pop(CPU *cpu){
-    u8 val = memory_read_8(cpu->p_memory, cpu->SP.val);
-    cpu-> SP.val ++;
-    return val;
-}
 
 static inline void rst_helper(CPU *cpu, u16 addr){
-    u8 hi = get_next_8(cpu);
-    u8 lo = get_next_8(cpu);
+    exit(0);
+    u16 pc = cpu->PC.val;      
 
-    push(cpu, lo);
-    push(cpu,hi);
+    push(cpu, pc >> 8);       
+    push(cpu, pc & 0xFF);     
 
-    cpu->PC.val = addr;
+    cpu->PC.val = addr;       
 
 }
 
@@ -282,6 +304,12 @@ static inline void nop(){
     // do nothing
 }
 
+static inline void jr_helper(CPU *cpu){
+    u16 val = cpu->PC.val;
+    u16 dest = val + ((s8) get_next_8(cpu));
+    cpu -> PC.val = dest;
+}
+
 static inline void jp_a16( CPU *cpu){
     // Jump to immediate 16 bit address
    
@@ -290,7 +318,7 @@ static inline void jp_a16( CPU *cpu){
 
 static inline void jr_nz(CPU *cpu){
     if(! flag_z(cpu)){
-        jp_a16(cpu);
+        jr_helper(cpu);
         cpu->cycles += 3;
         return;
     }
@@ -300,7 +328,7 @@ static inline void jr_nz(CPU *cpu){
 
 static inline void jr_nc(CPU *cpu){
     if(! flag_c(cpu)){
-        jp_a16(cpu);
+        jr_helper(cpu);
         cpu->cycles += 3;
         return;
     }
@@ -1314,10 +1342,12 @@ static Opcode opcodes[256]= {
 // steps the CPU
 void step_cpu(CPU *cpu){
     // fetch from memory
-    int i;
+    // int i;
+    // printf("NEXT\n");
     // scanf("%d",&i);
-    u8 opcode = memory_read_8(cpu->p_memory, cpu->PC.val);
-    printf("\nOPCODE FETCHED IS:  %.2xH \n",opcode);
+    // printf("\n");
+    // u8 opcode = memory_read_8(cpu->p_memory, cpu->PC.val);
+    // printf("\nOPCODE FETCHED IS:  %.2xH \n",opcode);
 
     // next instructions
     cpu->PC.val += 1;

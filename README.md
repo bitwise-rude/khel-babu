@@ -10,6 +10,10 @@ or through e-mail: dareludum@gmail.com
 
 ### Thank You
 
+# TODO
+- use gb doctor python implementation
+- stop? 
+
 # References That I am currently Using
 https://gbdev.io/pandocs/Memory_Map.html
 https://meganesu.github.io/generate-gb-opcodes/
