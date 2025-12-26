@@ -1078,6 +1078,37 @@ static inline void cp_m(CPU *cpu){
     cp_helper(cpu, memory_read_8(cpu->p_memory,cpu->HL.val));
 }
 
+static inline void add_a_d8(CPU *cpu){
+    add_a_helper(cpu, get_next_8(cpu));
+}
+
+static inline void sub_d8(CPU *cpu){
+    sub_helper(cpu, get_next_8(cpu));
+}
+
+static inline void and_d8(CPU *cpu){
+    and_helper(cpu, get_next_8(cpu));
+}
+
+static inline void or_d8(CPU *cpu){
+    or_helper(cpu, get_next_8(cpu));
+}
+
+static inline void adc_a_d8(CPU *cpu){
+    adc_helper(cpu, get_next_8(cpu));
+}
+
+static inline void sbc_d8(CPU *cpu){
+    sbc_helper(cpu, get_next_8(cpu));
+}
+
+static inline void xor_d8(CPU *cpu){
+    xor_helper(cpu, get_next_8(cpu));
+}
+
+static inline void cp_d8(CPU *cpu){
+    cp_helper(cpu, get_next_8(cpu));
+}
 
 
 
@@ -1266,6 +1297,17 @@ static Opcode opcodes[256]= {
     [0xBD] = {"CP L", 1, &cp_l},
     [0xBE] = {"CP M", 2, &cp_m},
     [0xBF] = {"CP A", 1, &cp_a},
+
+    [0xC6] = {"ADD A, d8", 2, &add_a_d8},
+    [0xD6] = {"SUB A, d8", 2, &sub_d8},
+    [0xE6] = {"AND A, d8", 2, &and_d8},
+    [0xF6] = {"OR A, d8", 2, &or_d8},
+
+
+    [0xCE] = {"ADC A, d8", 2, &adc_a_d8},
+    [0xDE] = {"SBC A, d8", 2, &sbc_d8},
+    [0xEE] = {"XOR A, d8", 2, &xor_d8},
+    [0xFE] = {"CP A, d8", 2, &cp_d8},
 };
 
 
