@@ -140,6 +140,7 @@ static inline void add_a_helper(CPU *cpu,  const u8 operand){
         unset_flag(cpu, CARRY);
 }
 
+
 static inline void and_helper(CPU *cpu , const u8 operand){
     u8 result = cpu->AF.hi & operand;
 
@@ -172,6 +173,109 @@ static inline void or_helper(CPU *cpu, const u8 operand){
 
     cpu->AF.hi = result;
 }
+
+
+static inline void adc_helper(CPU *cpu, const u8 operand){
+    u8 prev = cpu->AF.hi;
+    u8 carry_in = (cpu->AF.lo & CARRY) ? 1 : 0;
+
+    u16 sum = (u16)prev + (u16)operand + carry_in;
+    u8 new_value = (u8)sum;
+
+    cpu->AF.hi = new_value;
+
+    // ZERO flag
+    (new_value == 0) ? set_flag(cpu, ZERO) : unset_flag(cpu, ZERO);
+
+    // SUB flag
+    unset_flag(cpu, SUBTRACT);
+
+    // HALF-CARRY (bit 3 -> bit 4)
+    if (((prev & 0x0F) + (operand & 0x0F) + carry_in) > 0x0F)
+        set_flag(cpu, HALF_CARRY);
+    else
+        unset_flag(cpu, HALF_CARRY);
+
+    // CARRY (bit 7 -> bit 8)
+    if (sum > 0xFF)
+        set_flag(cpu, CARRY);
+    else
+        unset_flag(cpu, CARRY);
+}
+
+static inline void sbc_helper(CPU *cpu, const u8 operand){
+    u8 prev = cpu->AF.hi;
+    u8 carry_in = (cpu->AF.lo & CARRY) ? 1 : 0;
+
+    u16 diff = (u16)prev - (u16)operand - carry_in;
+    u8 new_value = (u8)diff;
+
+    cpu->AF.hi = new_value;
+
+    // ZERO flag
+    (new_value == 0) ? set_flag(cpu, ZERO) : unset_flag(cpu, ZERO);
+
+    // SUB flag (always set)
+    set_flag(cpu, SUBTRACT);
+
+    // HALF-CARRY flag (borrow from bit 4)
+    if ((prev & 0x0F) < ((operand & 0x0F) + carry_in))
+        set_flag(cpu, HALF_CARRY);
+    else
+        unset_flag(cpu, HALF_CARRY);
+
+    // CARRY flag (borrow from bit 8)
+    if (prev < (operand + carry_in))
+        set_flag(cpu, CARRY);
+    else
+        unset_flag(cpu, CARRY);
+}
+
+static inline void xor_helper(CPU *cpu , const u8 operand){
+    u8 result = cpu->AF.hi ^ operand;
+
+    // z flag
+    unset_flag(cpu,ZERO);
+
+    // sub
+    unset_flag(cpu,SUBTRACT);
+
+    // half carry
+    unset_flag (cpu, HALF_CARRY); 
+
+    // carry flag
+    unset_flag(cpu, CARRY);
+
+    cpu->AF.hi = result;
+
+}
+
+static inline void cp_helper(CPU *cpu, const u8 operand){
+    u8 prev = cpu->AF.hi;
+    u8 result = prev - operand;
+
+    // ZERO flag
+    (result == 0) ? set_flag(cpu, ZERO) : unset_flag(cpu, ZERO);
+
+    // SUB flag (always set)
+    set_flag(cpu, SUBTRACT);
+
+    // HALF-CARRY flag (borrow from bit 4)
+    if ((prev & 0x0F) < (operand & 0x0F))
+        set_flag(cpu, HALF_CARRY);
+    else
+        unset_flag(cpu, HALF_CARRY);
+
+    // CARRY flag (borrow from bit 8)
+    if (prev < operand)
+        set_flag(cpu, CARRY);
+    else
+        unset_flag(cpu, CARRY);
+
+}
+
+
+
 
 /*  Opcode Functions  */
 static inline void nop(){
@@ -839,6 +943,142 @@ static inline void or_a(CPU *cpu){
 static inline void or_m(CPU *cpu){
     or_helper(cpu, memory_read_8(cpu->p_memory,cpu->HL.val));
 }
+
+// adc operation
+static inline void adc_b(CPU *cpu){
+    adc_helper(cpu, cpu->BC.hi);
+}
+
+static inline void adc_c(CPU *cpu){
+    adc_helper(cpu, cpu->BC.lo);
+}
+
+static inline void adc_d(CPU *cpu){
+    adc_helper(cpu, cpu->DE.hi);
+}
+
+static inline void adc_e(CPU *cpu){
+    adc_helper(cpu, cpu->DE.lo);
+}
+
+static inline void adc_h(CPU *cpu){
+    adc_helper(cpu, cpu->HL.hi);
+}
+
+static inline void adc_l(CPU *cpu){
+    adc_helper(cpu, cpu->HL.lo);
+}
+
+static inline void adc_a(CPU *cpu){
+    adc_helper(cpu, cpu->AF.hi);
+}
+
+static inline void adc_m(CPU *cpu){
+    adc_helper(cpu, memory_read_8(cpu->p_memory,cpu->HL.val));
+}
+
+// sbc operation
+static inline void sbc_b(CPU *cpu){
+    sbc_helper(cpu, cpu->BC.hi);
+}
+
+static inline void sbc_c(CPU *cpu){
+    sbc_helper(cpu, cpu->BC.lo);
+}
+
+static inline void sbc_d(CPU *cpu){
+    sbc_helper(cpu, cpu->DE.hi);
+}
+
+static inline void sbc_e(CPU *cpu){
+    sbc_helper(cpu, cpu->DE.lo);
+}
+
+static inline void sbc_h(CPU *cpu){
+    sbc_helper(cpu, cpu->HL.hi);
+}
+
+static inline void sbc_l(CPU *cpu){
+    sbc_helper(cpu, cpu->HL.lo);
+}
+
+static inline void sbc_a(CPU *cpu){
+    sbc_helper(cpu, cpu->AF.hi);
+}
+
+static inline void sbc_m(CPU *cpu){
+    sbc_helper(cpu, memory_read_8(cpu->p_memory,cpu->HL.val));
+}
+
+// xor operation 
+
+static inline void xor_b(CPU *cpu){
+    xor_helper(cpu, cpu->BC.hi);
+}
+
+static inline void xor_c(CPU *cpu){
+    xor_helper(cpu, cpu->BC.lo);
+}
+
+static inline void xor_d(CPU *cpu){
+    xor_helper(cpu, cpu->DE.hi);
+}
+
+static inline void xor_e(CPU *cpu){
+    xor_helper(cpu, cpu->DE.lo);
+}
+
+static inline void xor_h(CPU *cpu){
+    xor_helper(cpu, cpu->HL.hi);
+}
+
+static inline void xor_l(CPU *cpu){
+    xor_helper(cpu, cpu->HL.lo);
+}
+
+static inline void xor_a(CPU *cpu){
+    xor_helper(cpu, cpu->AF.hi);
+}
+
+static inline void xor_m(CPU *cpu){
+    xor_helper(cpu, memory_read_8(cpu->p_memory,cpu->HL.val));
+}
+
+// xor operation 
+
+static inline void cp_b(CPU *cpu){
+    cp_helper(cpu, cpu->BC.hi);
+}
+
+static inline void cp_c(CPU *cpu){
+    cp_helper(cpu, cpu->BC.lo);
+}
+
+static inline void cp_d(CPU *cpu){
+    cp_helper(cpu, cpu->DE.hi);
+}
+
+static inline void cp_e(CPU *cpu){
+    cp_helper(cpu, cpu->DE.lo);
+}
+
+static inline void cp_h(CPU *cpu){
+    cp_helper(cpu, cpu->HL.hi);
+}
+
+static inline void cp_l(CPU *cpu){
+    cp_helper(cpu, cpu->HL.lo);
+}
+
+static inline void cp_a(CPU *cpu){
+    cp_helper(cpu, cpu->AF.hi);
+}
+
+static inline void cp_m(CPU *cpu){
+    cp_helper(cpu, memory_read_8(cpu->p_memory,cpu->HL.val));
+}
+
+
 
 
 static Opcode opcodes[256]= {
