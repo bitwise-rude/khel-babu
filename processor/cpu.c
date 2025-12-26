@@ -82,6 +82,75 @@ static inline int flag_c(const CPU *cpu) {
     return (cpu->AF.lo & CARRY) != 0;
 }
 
+static inline void set_flag(CPU *cpu, u8 flag){
+    cpu->AF.lo |= flag;
+}
+
+static inline void unset_flag(CPU *cpu, u8 flag){
+    cpu->AF.lo &= ~(flag);
+}
+
+static inline void sub_helper(CPU *cpu,  u8 operand){
+    u8 prev = cpu->AF.hi;
+    u8 new_value = prev - operand;
+
+    cpu->AF.hi = new_value;
+
+    //zero flag
+    if (new_value == 0){
+        set_flag(cpu, ZERO);
+    }
+    else{
+        unset_flag(cpu, ZERO);
+    }
+
+    // sub flag
+    set_flag(cpu,SUBTRACT);
+
+    // HALF-CARRY flag (borrow from bit 4)
+    if ((prev & 0x0F) < (operand & 0x0F))
+        set_flag(cpu, HALF_CARRY);
+    else
+        unset_flag(cpu, HALF_CARRY);
+
+    // CARRY flag (borrow from bit 8)
+    if (prev < operand)
+        set_flag(cpu, CARRY);
+    else
+        unset_flag(cpu, CARRY);
+}
+
+
+static inline void add_helper(CPU *cpu,  u8 operand){
+    u8 prev = cpu->AF.hi;
+    u8 new_value = prev + operand;
+
+    cpu->AF.hi = new_value;
+
+    //zero flag
+    if (new_value == 0){
+        set_flag(cpu, ZERO);
+    }
+    else{
+        unset_flag(cpu, ZERO);
+    }
+
+    // sub flag
+    unset_flag(cpu,SUBTRACT);
+
+    if (((prev & 0x0F) + (operand & 0x0F)) > 0x0F)
+        set_flag(cpu, HALF_CARRY);
+    else
+        unset_flag(cpu, HALF_CARRY);
+
+    // CARRY flag (carry from bit 7)
+    if ((u16)prev + (u16)operand > 0xFF)
+        set_flag(cpu, CARRY);
+    else
+        unset_flag(cpu, CARRY);
+}
+
+
 /*  Opcode Functions  */
 static inline void nop(){
     // do nothing
@@ -611,10 +680,79 @@ static inline void ld_a_d8(CPU *cpu){
     cpu->AF.hi = get_next_8(cpu);
 }
 
+// sub operation 
+
+static inline void sub_b(CPU *cpu){
+    sub_helper(cpu, cpu->BC.hi);
+}
+
+static inline void sub_c(CPU *cpu){
+    sub_helper(cpu, cpu->BC.lo);
+}
+
+static inline void sub_d(CPU *cpu){
+    sub_helper(cpu, cpu->DE.hi);
+}
+
+static inline void sub_e(CPU *cpu){
+    sub_helper(cpu, cpu->DE.lo);
+}
+
+static inline void sub_h(CPU *cpu){
+    sub_helper(cpu, cpu->HL.hi);
+}
+
+static inline void sub_b(CPU *cpu){
+    sub_helper(cpu, cpu->HL.lo);
+}
+
+static inline void sub_a(CPU *cpu){
+    sub_helper(cpu, cpu->AF.hi);
+}
+
+static inline void sub_m(CPU *cpu){
+    sub_helper(cpu, memory_read_8(cpu->p_memory,cpu->HL.val));
+}
+
+// add operation 
+
+static inline void add_a_b(CPU *cpu){
+    add_a_helper(cpu, cpu->BC.hi);
+}
+
+static inline void add_a_c(CPU *cpu){
+    add_a_helper(cpu, cpu->BC.lo);
+}
+
+static inline void add_a_d(CPU *cpu){
+    add_a_helper(cpu, cpu->DE.hi);
+}
+
+static inline void add_a_e(CPU *cpu){
+    add_a_helper(cpu, cpu->DE.lo);
+}
+
+static inline void add_a_h(CPU *cpu){
+    add_a_helper(cpu, cpu->HL.hi);
+}
+
+static inline void add_a_b(CPU *cpu){
+    add_a_helper(cpu, cpu->HL.lo);
+}
+
+static inline void add_a_a(CPU *cpu){
+    add_a_helper(cpu, cpu->AF.hi);
+}
+
+static inline void add_a_m(CPU *cpu){
+    add_a_helper(cpu, memory_read_8(cpu->p_memory,cpu->HL.val));
+}
+
 static Opcode opcodes[256]= {
     [0] = {"NOP",       4,      &nop},
 
     [0xc3] = {"JP a16", 4,      &jp_a16},
+    
     [0x20] = {"JR NZ, s8", 0, &jr_nz},
     [0x30] = {"JR NC, s8", 0, &jr_nc},
 
