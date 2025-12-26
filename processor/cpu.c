@@ -681,6 +681,29 @@ static Opcode opcodes[256]= {
     [0x7F] = {"LD A, A", 1, &ld_a_a},
     [0x7E] = {"LD A, (HL)", 2, &ld_a_m},
 
+    [0x02] = {"LD (BC), A", 2, &ld_bc_a},
+    [0x12] = {"LD (DE), A", 2, &ld_de_a},
+    [0x22] = {"LD (HL+), A", 2, &ld_hlp_a},
+    [0x32] = {"LD (HL-), A", 2, &ld_hlm_a},
+
+
+    [0x16] = {"LD B, d8", 2, &ld_b_d8},
+    [0x26] = {"LD D, d8", 2, &ld_d_d8},
+    [0x36] = {"LD H, d8", 2, &ld_h_d8},
+    [0x46] = {"LD (HL), d8", 2, &ld_m_d8},
+
+    [0x0A] = {"LD A, (BC)", 2, &ld_a_bc},
+    [0x1A] = {"LD A, (DE)", 2, &ld_a_de},
+    [0x2A] = {"LD A, (HL+)", 2, &ld_a_hlp},
+    [0x0A] = {"LD A, (HL-)", 2, &ld_a_hlm},
+
+    [0x0E] = {"LD C, d8", 2, &ld_c_d8},
+    [0x1E] = {"LD E, d8", 2, &ld_e_d8},
+    [0x2E] = {"LD L, d8", 2, &ld_l_d8},
+    [0x3E] = {"LD A, d8", 2, &ld_a_d8},
+    
+
+
 
 
 };

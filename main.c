@@ -28,7 +28,6 @@ void verify_cartridge_header(const u8 *p_cartridge){
 }
 
 int main(){
-	
 	Cartridge cartridge = load_cartridge();
 	
 	if (cartridge.rom  == NULL){
