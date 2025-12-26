@@ -748,6 +748,7 @@ static inline void add_a_m(CPU *cpu){
     add_a_helper(cpu, memory_read_8(cpu->p_memory,cpu->HL.val));
 }
 
+
 static Opcode opcodes[256]= {
     [0] = {"NOP",       4,      &nop},
 

@@ -3,3 +3,4 @@ __pycache__
 *.o
 ./khel-babu	
 /khel-babu
+/.vscode
