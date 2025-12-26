@@ -28,11 +28,11 @@ CPU init_cpu(Memory *p_mem){
 /* Helper functions */
 static inline u8 get_next_8(CPU *cpu){
      return memory_read_8(cpu->p_memory,cpu->PC.val);
+     cpu->PC.val ++;
 }
 
 static inline u16 get_next_16(CPU *cpu){
     u8 lo = get_next_8(cpu);
-    cpu-> PC.val ++;
     u8 hi = get_next_8(cpu);
 
     return combine_bytes(hi,lo);
@@ -51,7 +51,6 @@ static inline u8 pop(CPU *cpu){
 
 static inline void rst_helper(CPU *cpu, u16 addr){
     u8 hi = get_next_8(cpu);
-    cpu->PC.val ++;
     u8 lo = get_next_8(cpu);
 
     push(cpu, lo);
@@ -522,7 +521,73 @@ static inline void ld_m_l(CPU *cpu){
     ld_r_r_helper(get_address(cpu->p_memory, cpu->HL.val), &cpu->HL.lo);
 }
 
+static inline void ld_bc_a(CPU *cpu){
+    ld_r_r_helper(get_address(cpu->p_memory, cpu->BC.val), &cpu->AF.hi);
+}
 
+static inline void ld_de_a(CPU *cpu){
+    ld_r_r_helper(get_address(cpu->p_memory, cpu->DE.val), &cpu->AF.hi);
+}
+
+static inline void ld_hlp_a(CPU *cpu){
+    ld_r_r_helper(get_address(cpu->p_memory, cpu->HL.val), &cpu->AF.hi);
+    cpu->HL.val ++;
+}
+
+static inline void ld_hlm_a(CPU *cpu){
+    ld_r_r_helper(get_address(cpu->p_memory, cpu->HL.val), &cpu->AF.hi);
+    cpu->HL.val --;
+}
+
+static inline void ld_b_d8(CPU *cpu){
+    cpu->BC.hi = get_next_8(cpu);
+}
+
+static inline void ld_d_d8(CPU *cpu){
+    cpu->DE.hi = get_next_8(cpu);
+}
+
+static inline void ld_h_d8(CPU *cpu){
+    cpu->HL.hi = get_next_8(cpu);
+}
+
+static inline void ld_m_d8(CPU *cpu){
+    memory_write(cpu->p_memory, cpu->HL.val, get_next_8(cpu));
+}
+
+static inline void ld_a_bc(CPU *cpu){
+    cpu->AF.hi = memory_read_8(cpu->p_memory, cpu->BC.val);
+}
+
+static inline void ld_a_de(CPU *cpu){
+    cpu->AF.hi = memory_read_8(cpu->p_memory, cpu->DE.val);
+}
+
+static inline void ld_a_hlp(CPU *cpu){
+    cpu->AF.hi = memory_read_8(cpu->p_memory, cpu->HL.val);
+    cpu->HL.val ++;
+}
+
+static inline void ld_a_hlm(CPU *cpu){
+    cpu->AF.hi = memory_read_8(cpu->p_memory, cpu->HL.val);
+    cpu->HL.val --;
+}
+//
+static inline void ld_c_d8(CPU *cpu){
+    cpu->BC.lo = get_next_8(cpu);
+}
+
+static inline void ld_e_d8(CPU *cpu){
+    cpu->DE.lo = get_next_8(cpu);
+}
+
+static inline void ld_l_d8(CPU *cpu){
+    cpu->HL.lo = get_next_8(cpu);
+}
+
+static inline void ld_a_d8(CPU *cpu){
+    cpu->AF.hi = get_next_8(cpu);
+}
 
 static Opcode opcodes[256]= {
     [0] = {"NOP",       4,      &nop},
