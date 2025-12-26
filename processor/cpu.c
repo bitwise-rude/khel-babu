@@ -93,6 +93,27 @@ static inline void jp_a16( CPU *cpu){
     cpu -> PC.val =  get_next_16(cpu);
 }
 
+static inline void jr_nz(CPU *cpu){
+    if(! flag_z(cpu)){
+        jp_a16(cpu);
+        cpu->cycles += 3;
+        return;
+    }
+    cpu -> cycles += 2;
+
+}
+
+static inline void jr_nc(CPU *cpu){
+    if(! flag_c(cpu)){
+        jp_a16(cpu);
+        cpu->cycles += 3;
+        return;
+    }
+    cpu -> cycles += 2;
+
+}
+
+
 static inline void di( CPU *cpu){
     // disable interrut but resetting the IME flag
     cpu->IME = 0;
@@ -592,7 +613,11 @@ static inline void ld_a_d8(CPU *cpu){
 
 static Opcode opcodes[256]= {
     [0] = {"NOP",       4,      &nop},
+
     [0xc3] = {"JP a16", 4,      &jp_a16},
+    [0x20] = {"JR NZ, s8", 0, &jr_nz},
+    [0x30] = {"JR NC, s8", 0, &jr_nc},
+
     [0xf3] = {"DI",     1,   &di},
 
     [0x31] = {"LD SP, d16", 3,  &ld_sp_16},
