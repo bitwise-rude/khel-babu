@@ -82,27 +82,22 @@ static inline int flag_c(const CPU *cpu) {
     return (cpu->AF.lo & CARRY) != 0;
 }
 
-static inline void set_flag(CPU *cpu, u8 flag){
+static inline void set_flag(CPU *cpu, const u8 flag){
     cpu->AF.lo |= flag;
 }
 
-static inline void unset_flag(CPU *cpu, u8 flag){
+static inline void unset_flag(CPU *cpu, const u8 flag){
     cpu->AF.lo &= ~(flag);
 }
 
-static inline void sub_helper(CPU *cpu,  u8 operand){
+static inline void sub_helper(CPU *cpu, const u8 operand){
     u8 prev = cpu->AF.hi;
     u8 new_value = prev - operand;
 
     cpu->AF.hi = new_value;
 
     //zero flag
-    if (new_value == 0){
-        set_flag(cpu, ZERO);
-    }
-    else{
-        unset_flag(cpu, ZERO);
-    }
+    (new_value == 0) ? set_flag(cpu, ZERO): unset_flag(cpu, ZERO);
 
     // sub flag
     set_flag(cpu,SUBTRACT);
@@ -121,19 +116,14 @@ static inline void sub_helper(CPU *cpu,  u8 operand){
 }
 
 
-static inline void add_helper(CPU *cpu,  u8 operand){
+static inline void add_a_helper(CPU *cpu,  const u8 operand){
     u8 prev = cpu->AF.hi;
     u8 new_value = prev + operand;
 
     cpu->AF.hi = new_value;
 
     //zero flag
-    if (new_value == 0){
-        set_flag(cpu, ZERO);
-    }
-    else{
-        unset_flag(cpu, ZERO);
-    }
+    (new_value == 0) ? set_flag(cpu, ZERO): unset_flag(cpu, ZERO);
 
     // sub flag
     unset_flag(cpu,SUBTRACT);
@@ -150,6 +140,38 @@ static inline void add_helper(CPU *cpu,  u8 operand){
         unset_flag(cpu, CARRY);
 }
 
+static inline void and_helper(CPU *cpu , const u8 operand){
+    u8 result = cpu->AF.hi & operand;
+
+    // z flag
+    (result == 0) ? set_flag(cpu, ZERO): unset_flag(cpu, ZERO);
+
+    // sub
+    unset_flag(cpu,SUBTRACT);
+
+    // half carry
+    set_flag (cpu, HALF_CARRY); // documented behaviour but not sure TODO
+
+    // carry flag
+    unset_flag(cpu, CARRY);
+
+    cpu->AF.hi = result;
+
+}
+
+static inline void or_helper(CPU *cpu, const u8 operand){
+    u8 result = cpu->AF.hi | operand;
+
+    // z flag
+    (result == 0) ? set_flag(cpu, ZERO): unset_flag(cpu, ZERO);
+
+    // sub flag
+    unset_flag(cpu, SUBTRACT);
+    unset_flag(cpu, HALF_CARRY);
+    unset_flag(cpu, CARRY);
+
+    cpu->AF.hi = result;
+}
 
 /*  Opcode Functions  */
 static inline void nop(){
@@ -702,7 +724,7 @@ static inline void sub_h(CPU *cpu){
     sub_helper(cpu, cpu->HL.hi);
 }
 
-static inline void sub_b(CPU *cpu){
+static inline void sub_l(CPU *cpu){
     sub_helper(cpu, cpu->HL.lo);
 }
 
@@ -736,7 +758,7 @@ static inline void add_a_h(CPU *cpu){
     add_a_helper(cpu, cpu->HL.hi);
 }
 
-static inline void add_a_b(CPU *cpu){
+static inline void add_a_l(CPU *cpu){
     add_a_helper(cpu, cpu->HL.lo);
 }
 
@@ -746,6 +768,76 @@ static inline void add_a_a(CPU *cpu){
 
 static inline void add_a_m(CPU *cpu){
     add_a_helper(cpu, memory_read_8(cpu->p_memory,cpu->HL.val));
+}
+
+
+// and operation 
+
+static inline void and_b(CPU *cpu){
+    and_helper(cpu, cpu->BC.hi);
+}
+
+static inline void and_c(CPU *cpu){
+    and_helper(cpu, cpu->BC.lo);
+}
+
+static inline void and_d(CPU *cpu){
+    and_helper(cpu, cpu->DE.hi);
+}
+
+static inline void and_e(CPU *cpu){
+    and_helper(cpu, cpu->DE.lo);
+}
+
+static inline void and_h(CPU *cpu){
+    and_helper(cpu, cpu->HL.hi);
+}
+
+static inline void and_l(CPU *cpu){
+    and_helper(cpu, cpu->HL.lo);
+}
+
+static inline void and_a(CPU *cpu){
+    and_helper(cpu, cpu->AF.hi);
+}
+
+static inline void and_m(CPU *cpu){
+    and_helper(cpu, memory_read_8(cpu->p_memory,cpu->HL.val));
+}
+
+
+// or operation 
+
+static inline void or_b(CPU *cpu){
+    or_helper(cpu, cpu->BC.hi);
+}
+
+static inline void or_c(CPU *cpu){
+    or_helper(cpu, cpu->BC.lo);
+}
+
+static inline void or_d(CPU *cpu){
+    or_helper(cpu, cpu->DE.hi);
+}
+
+static inline void or_e(CPU *cpu){
+    or_helper(cpu, cpu->DE.lo);
+}
+
+static inline void or_h(CPU *cpu){
+    or_helper(cpu, cpu->HL.hi);
+}
+
+static inline void or_l(CPU *cpu){
+    or_helper(cpu, cpu->HL.lo);
+}
+
+static inline void or_a(CPU *cpu){
+    or_helper(cpu, cpu->AF.hi);
+}
+
+static inline void or_m(CPU *cpu){
+    or_helper(cpu, memory_read_8(cpu->p_memory,cpu->HL.val));
 }
 
 
@@ -866,7 +958,42 @@ static Opcode opcodes[256]= {
     [0x1E] = {"LD E, d8", 2, &ld_e_d8},
     [0x2E] = {"LD L, d8", 2, &ld_l_d8},
     [0x3E] = {"LD A, d8", 2, &ld_a_d8},
-    
+
+    [0x80] = {"ADD B", 1, &add_a_b},
+    [0x81] = {"ADD C", 1, &add_a_c},
+    [0x82] = {"ADD D", 1, &add_a_d},
+    [0x83] = {"ADD E", 1, &add_a_e},
+    [0x84] = {"ADD H", 1, &add_a_h},
+    [0x85] = {"ADD L", 1, &add_a_l},
+    [0x86] = {"ADD M", 2, &add_a_m},
+    [0x87] = {"ADD A", 1, &add_a_a},
+
+    [0x90] = {"SUB B", 1, &sub_b},
+    [0x91] = {"SUB C", 1, &sub_c},
+    [0x92] = {"SUB D", 1, &sub_d},
+    [0x93] = {"SUB E", 1, &sub_e},
+    [0x94] = {"SUB H", 1, &sub_h},
+    [0x95] = {"SUB L", 1, &sub_l},
+    [0x96] = {"SUB M", 2, &sub_m},
+    [0x97] = {"SUB A", 1, &sub_a},
+
+    [0xA0] = {"and B", 1, &and_b},
+    [0xA1] = {"and C", 1, &and_c},
+    [0xA2] = {"and D", 1, &and_d},
+    [0xA3] = {"and E", 1, &and_e},
+    [0xA4] = {"and H", 1, &and_h},
+    [0xA5] = {"and L", 1, &and_l},
+    [0xA6] = {"and M", 2, &and_m},
+    [0xA7] = {"and A", 1, &and_a},
+
+    [0xB0] = {"or B", 1, &or_b},
+    [0xB1] = {"or C", 1, &or_c},
+    [0xB2] = {"or D", 1, &or_d},
+    [0xB3] = {"or E", 1, &or_e},
+    [0xB4] = {"or H", 1, &or_h},
+    [0xB5] = {"or L", 1, &or_l},
+    [0xB6] = {"or M", 2, &or_m},
+    [0xB7] = {"or A", 1, &or_a},
 };
 
 
