@@ -12,6 +12,7 @@
 #define DEBUG
 
 
+
 CPU init_cpu(Memory *p_mem){
     return (CPU) {
         .PC.val = 0x100,
@@ -82,7 +83,7 @@ static inline void rst_helper(CPU *cpu, u16 addr){
 }
 
 
-static inline void ld_r_r_helper(u8 *src, u8 *dst){
+static inline void ld_r_r_helper(u8 *dst, u8 *src){
     *dst = *src;
 }
 
@@ -303,9 +304,8 @@ static inline void nop(){
 }
 
 static inline void jr_helper(CPU *cpu){
-    u16 val = cpu->PC.val;
-    u16 dest = val + ((s8) get_next_8(cpu));
-    cpu -> PC.val = dest;
+    s8 offset = (s8)get_next_8(cpu);
+    cpu->PC.val += offset;
 }
 
 static inline void jp_a16( CPU *cpu){
@@ -315,7 +315,7 @@ static inline void jp_a16( CPU *cpu){
 }
 
 static inline void jr_nz(CPU *cpu){
-    if(! flag_z(cpu)){
+    if(!flag_z(cpu)){
         jr_helper(cpu);
         cpu->cycles += 3;
         return;
