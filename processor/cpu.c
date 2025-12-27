@@ -96,14 +96,14 @@ static inline u8 pop(CPU *cpu){
 }
 
 static inline void call_helper(CPU *cpu){
+    u16 addr = get_next_16(cpu);   
+    
+
     push(cpu, cpu->PC.hi);
     push(cpu, cpu->PC.lo);
 
-    u16 addr = get_next_16(cpu);
     cpu->PC.val = addr;
-
     cpu->cycles += 6;
-
 }
 
 
@@ -349,6 +349,24 @@ static inline void jp_a16( CPU *cpu){
     cpu -> PC.val =  get_next_16(cpu);
 }
 
+static inline void jr_s8(CPU *cpu){
+    jr_helper(cpu);
+    cpu->cycles += 3;
+}
+
+static inline void jr_z(CPU *cpu){
+    if(flag_z(cpu)){
+        jr_helper(cpu);
+        cpu->cycles += 3;
+        return;
+    }
+    //u8 discard = get_next_8(cpu);//
+    cpu->PC.val ++;
+    cpu -> cycles += 2;
+
+}
+
+
 static inline void jr_nz(CPU *cpu){
     if(!flag_z(cpu)){
         jr_helper(cpu);
@@ -368,6 +386,18 @@ static inline void call_a16(CPU *cpu){
 
 static inline void jr_nc(CPU *cpu){
     if(! flag_c(cpu)){
+        jr_helper(cpu);
+        cpu->cycles += 3;
+        return;
+    }
+    //u8 discard = get_next_8(cpu); // TODO fix this for others too
+    cpu->PC.val ++;
+    cpu -> cycles += 2;
+
+}
+
+static inline void jr_c(CPU *cpu){
+    if(flag_c(cpu)){
         jr_helper(cpu);
         cpu->cycles += 3;
         return;
@@ -1353,6 +1383,9 @@ static Opcode opcodes[256]= {
     
     [0x20] = {"JR NZ, s8", 0, &jr_nz},
     [0x30] = {"JR NC, s8", 0, &jr_nc},
+    [0x18] = {"JR, s8", 0, &jr_s8},
+    [0x28] = {"JR Z, s8", 0, &jr_z},
+    [0x38] = {"JR C, s8", 0, &jr_c},
 
     [0xf3] = {"DI",     1,   &di},
 
