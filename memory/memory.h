@@ -17,52 +17,83 @@ typedef struct
 {
     Cartridge *p_cartidge;
     u8 WRAM[0x1000];
+    u8 IO[0x80];
+    u8 IE;
 }Memory;
 
 static inline u8 *get_address(Memory *p_mem, const u16 addr){
     if (addr > 0x0000 && addr < 0x8000){
         // Cartridge Rom
-        printf("READING DATA FROM CARTRIDGE ROM AT: %.4xH\n",addr);
+        printf("DATA FROM CARTRIDGE ROM AT: %.4xH\n",addr);
         return &p_mem->p_cartidge->rom[addr];
     }
 
     else if (addr >= 0xC000 && addr <= 0xDFFF){
         // WRAM 
-        printf("READING DATA FROM RAM AT: %x\n",addr);
+        printf("DATA FROM RAM AT: %x\n",addr);
         return &p_mem -> WRAM[addr - 0xC000];
     }
 
+    else if (addr== 0xff07){
+        // some timer shit 
+        printf("TIMER STATE IS NOT IMPLEMENTED YET");
+        return &p_mem -> IO[0xff07 - 0xff00];
+    }
+    else if (addr== 0xff0f){
+        // some interrupt shit 
+        printf("Interrupt  IS NOT IMPLEMENTED YET");
+        return &p_mem -> IO[0xff0f - 0xff00];
+    }
+    else if (addr== 0xffff){
+        // more interrupt shit interrupt shit 
+        printf("Interrupt  IS NOT IMPLEMENTED YET");
+        return &p_mem -> IE;
+    }
+    else if (addr== 0xff26){
+        // audio shit 
+        printf("Audio  IS NOT IMPLEMENTED YET");
+        return &p_mem -> IO[0xff26 - 0xff00];
+    }
+    else if (addr== 0xff25){
+        // audio sound panning shit 
+        printf("Audio  IS NOT IMPLEMENTED YET");
+        return &p_mem -> IO[0xff25 - 0xff00];
+    }
+    else if (addr== 0xff24){
+        // audio master volume shit 
+        printf("Audio  IS NOT IMPLEMENTED YET");
+        return &p_mem -> IO[0xff24 - 0xff00];
+    }
 
     else{
-        printf("Reading Unimplemented memory location %x\n",addr);
-        exit(1);
+        return NULL;
     }
 
 }
 
 static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
-    return *get_address(p_mem,addr);
+    printf("READING ");
+    u8 *add =  get_address(p_mem,addr);
+    if (add == NULL){
+        printf("Reading Unimplemented memory location %x\n",addr);
+        exit(0);
+    }
+    return *add;
 }
 
 
 
 static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
-        if (addr > 0x0000 && addr < 0x8000){
-        // Cartridge Rom
-        printf("WRITING DATA TO CARTRIDGE ROM AT: %x and Value: %x\n",addr,data);
-        p_mem->p_cartidge->rom[addr] = data;
-    }
+    printf("WRITING ");
+    u8 *add =  get_address(p_mem,addr);
 
-    else if (addr >= 0xC000 && addr <= 0xDFFF){
-        // WRAM 
-        printf("WRITING DATA TO RAM AT: %x and Value: %x\n",addr,data);
-        p_mem -> WRAM[addr - 0xC000] = data;
+    if (add == NULL){
+        printf("Writing Unimplemented memory location %x and data %x\n",addr, data);
+        exit(0);
     }
-
-    else{
-        printf("Writing Unimplemented memory location %x\n",addr);
-        exit(1);
-    }
+    printf("WRITING DATA TO CARTRIDGE ROM AT: %x and Value: %x\n",addr,data);
+    *add = data;
+   
 }
 
 
