@@ -3,4 +3,5 @@ __pycache__
 *.o
 ./khel-babu	
 /khel-babu
-/.vscode
+.vscode/
+gameboy-doctor/

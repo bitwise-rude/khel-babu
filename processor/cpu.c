@@ -9,9 +9,7 @@
 #define HALF_CARRY 0x20
 #define CARRY 0x10
 
-
-
-
+#define DEBUG
 
 
 CPU init_cpu(Memory *p_mem){
@@ -1346,6 +1344,31 @@ void step_cpu(CPU *cpu){
     // printf("NEXT\n");
     // scanf("%d",&i);
     // printf("\n");
+
+    // debug
+
+        #ifdef DEBUG
+    FILE *fp = fopen("logging.txt","a");
+    fprintf(fp,"A:%.2x F:%.2x B:%.2x C:%.2x D:%.2x E:%.2x H:%.2x L:%.2x SP:%.4x PC:%.4x PCMEM:%.2x,%.2x,%.2x,%.2x\n",
+            cpu->AF.hi,
+            cpu-> AF.lo,
+            cpu-> BC.hi,
+            cpu->BC.lo,
+            cpu->DE.hi,
+            cpu->DE.lo,
+            cpu->HL.hi,
+            cpu->HL.lo,
+            cpu->SP.val,
+            cpu->PC.val,
+            memory_read_8(cpu->p_memory, cpu->PC.val),
+            memory_read_8(cpu->p_memory, cpu->PC.val+1),
+            memory_read_8(cpu->p_memory, cpu->PC.val+2),
+            memory_read_8(cpu->p_memory, cpu->PC.val+3)
+        );
+    
+    fclose(fp);
+    #endif
+
     u8 opcode = memory_read_8(cpu->p_memory, cpu->PC.val);
     printf("\nOPCODE FETCHED IS:  %.2xH \n",opcode);
 
@@ -1359,6 +1382,8 @@ void step_cpu(CPU *cpu){
     to_exec.opcode_method(cpu);
     cpu->cycles += to_exec.cycles;
     printf("\n");
+
+    // logging 
 
 
 }
