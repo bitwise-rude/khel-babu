@@ -876,6 +876,50 @@ static inline void ld_m_e(CPU *cpu){
     ld_r_r_helper(get_address(cpu->p_memory, cpu->HL.val), &cpu->DE.lo);
 }
 
+// weird dmg ld stuff
+static inline void ld_a8_a(CPU *cpu){
+    u8 operand = get_next_8(cpu);
+
+    u16 actual_adress = 0xFF00 | operand;
+
+    memory_write(cpu->p_memory, actual_adress, cpu->AF.hi);
+}
+
+static inline void ld_mc_a(CPU *cpu){
+    u8 operand = cpu->BC.lo;
+
+    u16 actual_adress = 0xFF00 | operand;
+
+    memory_write(cpu->p_memory, actual_adress, cpu->AF.hi);
+}
+
+static inline void ld_a_mc(CPU *cpu){
+    u8 operand = cpu->BC.lo;
+
+    u16 actual_adress = 0xFF00 | operand;
+
+    cpu->AF.hi = memory_read_8(cpu->p_memory, actual_adress);
+}
+
+static inline void ld_a_a8(CPU *cpu){
+    u8 operand = get_next_8(cpu);
+
+    u16 actual_adress = 0xFF00 | operand;
+
+    cpu->AF.hi = memory_read_8(cpu->p_memory, actual_adress);
+}
+
+static inline void ld_a16_a(CPU *cpu){
+    u16 adderess = get_next_16(cpu);
+    memory_write(cpu->p_memory, adderess, cpu->AF.hi);
+}
+
+static inline void ld_a_a16(CPU *cpu){
+    u16 adderess = get_next_16(cpu);
+    cpu->AF.hi = memory_read_8(cpu->p_memory, adderess);
+}
+
+
 static inline void ld_m_l(CPU *cpu){
     ld_r_r_helper(get_address(cpu->p_memory, cpu->HL.val), &cpu->HL.lo);
 }
@@ -923,6 +967,10 @@ static inline void ld_a_de(CPU *cpu){
 }
 
 static inline void ld_a_hlp(CPU *cpu){
+    // int i ;
+    // printf("%x and %x",cpu->HL.val, memory_read_8(cpu->p_memory, cpu->HL.val));
+    // scanf("%d", &i);
+    // exit(0);
     cpu->AF.hi = memory_read_8(cpu->p_memory, cpu->HL.val);
     cpu->HL.val ++;
 }
@@ -1285,6 +1333,7 @@ static inline void dec_h(CPU *cpu){
 }
 
 
+
 static Opcode opcodes[256]= {
     [0] = {"NOP",       4,      &nop},
 
@@ -1406,6 +1455,13 @@ static Opcode opcodes[256]= {
     [0x1E] = {"LD E, d8", 2, &ld_e_d8},
     [0x2E] = {"LD L, d8", 2, &ld_l_d8},
     [0x3E] = {"LD A, d8", 2, &ld_a_d8},
+
+    [0xE0] = {"LD (a8), A", 3, &ld_a8_a},
+    [0xF0] = {"LD A, (a8)", 3, &ld_a_a8},
+    [0xEA] = {"LD (a16), A", 4, &ld_a16_a},
+    [0xFA] = {"LD A, (a16)", 4, &ld_a_a16},
+    [0xE2] = {"LD (m), A", 2, &ld_mc_a},
+    [0xF2] = {"LD A, (m)", 2, &ld_a_mc},
 
     [0x80] = {"ADD B", 1, &add_a_b},
     [0x81] = {"ADD C", 1, &add_a_c},
