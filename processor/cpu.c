@@ -31,12 +31,32 @@ CPU init_cpu(Memory *p_mem){
 }
 
 /* Helper functions */
+// combines two bytes into a 16 bit word
+static inline u16 combine_bytes(u8 hi, u8 lo)
+{
+    return ((u16)hi << 8) | lo;
+}
+
+
 static inline void set_flag(CPU *cpu, const u8 flag){
     cpu->AF.lo |= flag;
 }
 
 static inline void unset_flag(CPU *cpu, const u8 flag){
     cpu->AF.lo &= ~(flag);
+}
+
+static inline u8 get_next_8(CPU *cpu){
+     u8 val = memory_read_8(cpu->p_memory,cpu->PC.val);
+     cpu->PC.val ++;
+     return val;
+}
+
+static inline u16 get_next_16(CPU *cpu){
+    u8 lo = get_next_8(cpu);
+    u8 hi = get_next_8(cpu);
+
+    return combine_bytes(hi,lo);
 }
 
 static inline void dec_helper(CPU *cpu, u8 *reg){
@@ -65,13 +85,11 @@ static inline void dec_helper(CPU *cpu, u8 *reg){
 
 
 static inline void push(CPU *cpu, u8 val){
-    exit(0);
     cpu-> SP.val --;
     memory_write(cpu->p_memory, cpu->SP.val, val);
 }
 
 static inline u8 pop(CPU *cpu){
-    exit(0);
     u8 val = memory_read_8(cpu->p_memory, cpu->SP.val);
     cpu-> SP.val ++;
     return val;
@@ -80,27 +98,16 @@ static inline u8 pop(CPU *cpu){
 static inline void call_helper(CPU *cpu){
     push(cpu, cpu->PC.hi);
     push(cpu, cpu->PC.lo);
+
+    u16 addr = get_next_16(cpu);
+    cpu->PC.val = addr;
+
+    cpu->cycles += 6;
+
 }
 
-// combines two bytes into a 16 bit word
-static inline u16 combine_bytes(u8 hi, u8 lo)
-{
-    return ((u16)hi << 8) | lo;
-}
 
 
-static inline u8 get_next_8(CPU *cpu){
-     u8 val = memory_read_8(cpu->p_memory,cpu->PC.val);
-     cpu->PC.val ++;
-     return val;
-}
-
-static inline u16 get_next_16(CPU *cpu){
-    u8 lo = get_next_8(cpu);
-    u8 hi = get_next_8(cpu);
-
-    return combine_bytes(hi,lo);
-}
 
 
 static inline void rst_helper(CPU *cpu, u16 addr){
@@ -352,6 +359,11 @@ static inline void jr_nz(CPU *cpu){
     cpu->PC.val ++;
     cpu -> cycles += 2;
 
+}
+
+// call
+static inline void call_a16(CPU *cpu){
+    call_helper(cpu);
 }
 
 static inline void jr_nc(CPU *cpu){
@@ -1551,6 +1563,8 @@ static Opcode opcodes[256]= {
     [0x1D] = {"DEC E", 1, &dec_e},
     [0x2D] = {"DEC L", 1, &dec_l},
     [0x3D] = {"DEC A", 1, &dec_a},
+
+    [0xCD] = {"CALL a16",0, &call_a16},
 };
 
 
