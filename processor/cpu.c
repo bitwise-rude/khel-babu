@@ -97,7 +97,7 @@ static inline u8 pop(CPU *cpu){
 
 static inline void call_helper(CPU *cpu){
     u16 addr = get_next_16(cpu);   
-    
+
 
     push(cpu, cpu->PC.hi);
     push(cpu, cpu->PC.lo);
@@ -1374,7 +1374,46 @@ static inline void dec_h(CPU *cpu){
     dec_helper(cpu,&cpu->HL.hi);
 }
 
+// stack operations
+static inline void push_bc(CPU *cpu){
+    push(cpu, cpu->BC.hi);
+    push(cpu, cpu->BC.lo);
+}
 
+static inline void push_de(CPU *cpu){
+    push(cpu, cpu->DE.hi);
+    push(cpu, cpu->DE.lo);
+}
+
+static inline void push_hl(CPU *cpu){
+    push(cpu, cpu->HL.hi);
+    push(cpu, cpu->HL.lo);
+}
+
+static inline void push_af(CPU *cpu){
+    push(cpu, cpu->AF.hi);
+    push(cpu, cpu->AF.lo);
+}
+
+static inline void pop_bc(CPU *cpu){
+    cpu->BC.lo = pop(cpu);
+    cpu->BC.hi = pop(cpu);
+}
+
+static inline void pop_de(CPU *cpu){
+    cpu->DE.lo = pop(cpu);
+    cpu->DE.hi = pop(cpu);
+}
+
+static inline void pop_hl(CPU *cpu){
+    cpu->HL.lo = pop(cpu);
+    cpu->HL.hi = pop(cpu);
+}
+
+static inline void pop_af(CPU *cpu){
+    cpu->AF.lo = pop(cpu);
+    cpu->AF.hi = pop(cpu);
+}
 
 static Opcode opcodes[256]= {
     [0] = {"NOP",       4,      &nop},
@@ -1598,6 +1637,17 @@ static Opcode opcodes[256]= {
     [0x3D] = {"DEC A", 1, &dec_a},
 
     [0xCD] = {"CALL a16",0, &call_a16},
+
+    [0xc1] = {"POP BC",3, &pop_bc},
+    [0xd1] = {"POP DE",3, &pop_de},
+    [0xe1] = {"POP HL",3, &pop_hl},
+    [0xf1] = {"POP AF",3, &pop_af},
+
+    [0xc5] = {"PUSH BC",4, &push_bc},
+    [0xd5] = {"PUSH DE",4, &push_de},
+    [0xe5] = {"PUSH HL",4, &push_hl},
+    [0xf5] = {"PUSH AF",4, &push_af},
+    
 };
 
 
