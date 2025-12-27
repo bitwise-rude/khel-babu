@@ -305,6 +305,8 @@ static inline void nop(){
 
 static inline void jr_helper(CPU *cpu){
     s8 offset = (s8)get_next_8(cpu);
+    printf("\nOFFSET:%d\n",(int)offset);
+   
     cpu->PC.val += offset;
 }
 
@@ -320,6 +322,8 @@ static inline void jr_nz(CPU *cpu){
         cpu->cycles += 3;
         return;
     }
+    //u8 discard = get_next_8(cpu);//
+    cpu->PC.val ++;
     cpu -> cycles += 2;
 
 }
@@ -330,6 +334,8 @@ static inline void jr_nc(CPU *cpu){
         cpu->cycles += 3;
         return;
     }
+    //u8 discard = get_next_8(cpu); // TODO fix this for others too
+    cpu->PC.val ++;
     cpu -> cycles += 2;
 
 }
