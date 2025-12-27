@@ -20,13 +20,20 @@ typedef struct
     u8 IO[0x80];
     u8 IE;
     u8 HRAM[0x7F];
+    u8 VRAM[0x2000];
 }Memory;
 
 static inline u8 *get_address(Memory *p_mem, const u16 addr){
+    printf("HE00");
     if (addr > 0x0000 && addr < 0x8000){
         // Cartridge Rom
         printf("DATA FROM CARTRIDGE ROM AT: %.4xH\n",addr);
         return &p_mem->p_cartidge->rom[addr];
+    }
+
+    if (addr >= 0x8000 && addr <=0x9FFF){
+        // not implemented vram
+        return &p_mem -> VRAM[addr - 0x8000];
     }
 
     else if (addr >= 0xC000 && addr <= 0xDFFF){
@@ -71,7 +78,13 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
         return &p_mem -> IO[0xff24 - 0xff00];
     }
 
+    else if (addr == 0xff40){
+        // not implemented LCDC : LCD CONTROL
+        return &p_mem -> IO[0xff40 - 0xff00];
+    }
+
     else{
+        printf("NOT IMPLEMENTED\n");
         return NULL;
     }
 
@@ -79,6 +92,9 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
 
 static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
     printf("READING ");
+    if (addr == 0xFF44){
+        return 0x90; // TODO: change this just for experiment
+    }
     u8 *add =  get_address(p_mem,addr);
     if (add == NULL){
         printf("Reading Unimplemented memory location %x\n",addr);

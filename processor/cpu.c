@@ -376,12 +376,51 @@ static inline void jr_nz(CPU *cpu){
     //u8 discard = get_next_8(cpu);//
     cpu->PC.val ++;
     cpu -> cycles += 2;
-
 }
 
 // call
 static inline void call_a16(CPU *cpu){
     call_helper(cpu);
+}
+
+static inline void call_nz_a16(CPU *cpu){
+    if(!flag_z(cpu)){
+        call_helper(cpu);
+        cpu->cycles += 6;
+        return;
+    }
+    cpu->PC.val +=2; // for the operands
+    cpu -> cycles += 3;
+}
+
+static inline void call_nc_a16(CPU *cpu){
+    if(!flag_c(cpu)){
+        call_helper(cpu);
+        cpu->cycles += 6;
+        return;
+    }
+    cpu->PC.val +=2; // for the operands
+    cpu -> cycles += 3;
+}
+
+static inline void call_z_a16(CPU *cpu){
+    if(flag_z(cpu)){
+        call_helper(cpu);
+        cpu->cycles += 6;
+        return;
+    }
+    cpu->PC.val +=2; // for the operands
+    cpu -> cycles += 3;
+}
+
+static inline void call_c_a16(CPU *cpu){
+    if(flag_c(cpu)){
+        call_helper(cpu);
+        cpu->cycles += 6;
+        return;
+    }
+    cpu->PC.val +=2; // for the operands
+    cpu -> cycles += 3;
 }
 
 static inline void jr_nc(CPU *cpu){
@@ -1679,7 +1718,11 @@ static Opcode opcodes[256]= {
     [0x3D] = {"DEC A", 1, &dec_a},
 
     [0xCD] = {"CALL a16",0, &call_a16},
-
+    [0xC4] = {"CALL NZ, a16",0, &call_nz_a16},
+    [0xD4] = {"CALL NC, a16",0, &call_nc_a16},
+    [0xCC] = {"CALL Z, a16",0, &call_z_a16},
+    [0xDC] = {"CALL C, a16",0, &call_c_a16},
+    
     [0xc1] = {"POP BC",3, &pop_bc},
     [0xd1] = {"POP DE",3, &pop_de},
     [0xe1] = {"POP HL",3, &pop_hl},
