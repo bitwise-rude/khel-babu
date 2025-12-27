@@ -31,6 +31,38 @@ CPU init_cpu(Memory *p_mem){
 }
 
 /* Helper functions */
+static inline void set_flag(CPU *cpu, const u8 flag){
+    cpu->AF.lo |= flag;
+}
+
+static inline void unset_flag(CPU *cpu, const u8 flag){
+    cpu->AF.lo &= ~(flag);
+}
+
+static inline void dec_helper(CPU *cpu, u8 *reg){
+    u8 prev = *reg;
+    u8 result = prev - 1;
+
+    *reg = result;
+
+    // Z flag
+    if (result == 0)
+        set_flag(cpu, ZERO);
+    else
+        unset_flag(cpu, ZERO);
+
+    // N flag (subtract)
+    set_flag(cpu, SUBTRACT);
+
+    // H flag (borrow from bit 4)
+    if ((prev & 0x0F) == 0x00)
+        set_flag(cpu, HALF_CARRY);
+    else
+        unset_flag(cpu, HALF_CARRY);
+
+    // C flag: unaffected
+}
+
 
 static inline void push(CPU *cpu, u8 val){
     exit(0);
@@ -103,13 +135,7 @@ static inline int flag_c(const CPU *cpu) {
     return (cpu->AF.lo & CARRY) != 0;
 }
 
-static inline void set_flag(CPU *cpu, const u8 flag){
-    cpu->AF.lo |= flag;
-}
 
-static inline void unset_flag(CPU *cpu, const u8 flag){
-    cpu->AF.lo &= ~(flag);
-}
 
 static inline void sub_helper(CPU *cpu, const u8 operand){
     u8 prev = cpu->AF.hi;
@@ -465,6 +491,90 @@ static inline void inc_l(CPU *cpu)
     cpu->AF.lo &= 0xF0;
 
     cpu->HL.lo = res;
+}
+
+static inline void inc_b(CPU *cpu)
+{
+    u8 val = cpu->BC.hi;
+    u8 res = val + 1;
+
+    cpu->AF.lo &= ~(ZERO | SUBTRACT | HALF_CARRY);
+
+    // Z flag
+    if (res == 0)
+        cpu->AF.lo |= ZERO;
+
+    // H flag
+    if ((val & 0x0F) == 0x0F)
+        cpu->AF.lo |= HALF_CARRY;
+
+
+    cpu->AF.lo &= 0xF0;
+
+    cpu->BC.hi = res;
+}
+
+static inline void inc_d(CPU *cpu)
+{
+    u8 val = cpu->DE.hi;
+    u8 res = val + 1;
+
+    cpu->AF.lo &= ~(ZERO | SUBTRACT | HALF_CARRY);
+
+    // Z flag
+    if (res == 0)
+        cpu->AF.lo |= ZERO;
+
+    // H flag
+    if ((val & 0x0F) == 0x0F)
+        cpu->AF.lo |= HALF_CARRY;
+
+
+    cpu->AF.lo &= 0xF0;
+
+    cpu->DE.hi = res;
+}
+
+static inline void inc_h(CPU *cpu)
+{
+    u8 val = cpu->HL.hi;
+    u8 res = val + 1;
+
+    cpu->AF.lo &= ~(ZERO | SUBTRACT | HALF_CARRY);
+
+    // Z flag
+    if (res == 0)
+        cpu->AF.lo |= ZERO;
+
+    // H flag
+    if ((val & 0x0F) == 0x0F)
+        cpu->AF.lo |= HALF_CARRY;
+
+
+    cpu->AF.lo &= 0xF0;
+
+    cpu->HL.hi = res;
+}
+
+static inline void inc_m(CPU *cpu)
+{
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    u8 res = val + 1;
+
+    cpu->AF.lo &= ~(ZERO | SUBTRACT | HALF_CARRY);
+
+    // Z flag
+    if (res == 0)
+        cpu->AF.lo |= ZERO;
+
+    // H flag
+    if ((val & 0x0F) == 0x0F)
+        cpu->AF.lo |= HALF_CARRY;
+
+
+    cpu->AF.lo &= 0xF0;
+
+    memory_write(cpu->p_memory, cpu->HL.val, res);
 }
 
 static inline void ret(CPU *cpu){
@@ -1142,6 +1252,37 @@ static inline void cp_d8(CPU *cpu){
     cp_helper(cpu, get_next_8(cpu));
 }
 
+static inline void dec_c(CPU *cpu){
+    dec_helper(cpu,&cpu->BC.lo);
+}
+
+static inline void dec_e(CPU *cpu){
+    dec_helper(cpu,&cpu->DE.lo);
+}
+
+static inline void dec_l(CPU *cpu){
+    dec_helper(cpu,&cpu->HL.lo);
+}
+
+static inline void dec_a(CPU *cpu){
+    dec_helper(cpu,&cpu->AF.hi);
+}
+
+static inline void dec_b(CPU *cpu){
+    dec_helper(cpu,&cpu->BC.hi);
+}
+
+static inline void dec_d(CPU *cpu){
+    dec_helper(cpu,&cpu->DE.hi);
+}
+
+static inline void dec_m(CPU *cpu){
+    dec_helper(cpu,get_address(cpu->p_memory,cpu->HL.val));
+}
+
+static inline void dec_h(CPU *cpu){
+    dec_helper(cpu,&cpu->HL.hi);
+}
 
 
 static Opcode opcodes[256]= {
@@ -1168,6 +1309,10 @@ static Opcode opcodes[256]= {
     [0x2c] = {"INC L", 1, &inc_l},
     [0x1c] = {"INC E", 1, &inc_e},
     [0x0c] = {"INC C", 1, &inc_c},
+    [0x04] = {"INC B", 1, &inc_b},
+    [0x14] = {"INC D", 1, &inc_d},
+    [0x24] = {"INC H", 1, &inc_h},
+    [0x34] = {"INC (HL)", 3, &inc_m},
 
     [0xc9] = {"RET", 4, &ret},
     [0xc0] = {"RET NZ", 0, &ret_nz},
@@ -1340,6 +1485,16 @@ static Opcode opcodes[256]= {
     [0xDE] = {"SBC A, d8", 2, &sbc_d8},
     [0xEE] = {"XOR A, d8", 2, &xor_d8},
     [0xFE] = {"CP A, d8", 2, &cp_d8},
+
+    [0x09] = {"DEC B", 1, &dec_b},
+    [0x19] = {"DEC D", 1, &dec_d},
+    [0x29] = {"DEC H", 1, &dec_h},
+    [0x39] = {"DEC (HL)", 3, &dec_m},
+
+    [0x0D] = {"DEC C", 1, &dec_c},
+    [0x1D] = {"DEC E", 1, &dec_e},
+    [0x2D] = {"DEC L", 1, &dec_l},
+    [0x3D] = {"DEC A", 1, &dec_a},
 };
 
 
