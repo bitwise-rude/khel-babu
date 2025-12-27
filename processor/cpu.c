@@ -1415,6 +1415,38 @@ static inline void pop_af(CPU *cpu){
     cpu->AF.hi = pop(cpu);
 }
 
+static inline void inc_bc(CPU *cpu){
+    cpu->BC.val += 1;
+}
+
+static inline void inc_de(CPU *cpu){
+    cpu->DE.val += 1;
+}
+
+static inline void inc_hl(CPU *cpu){
+    cpu->HL.val += 1;
+}
+
+static inline void inc_sp(CPU *cpu){
+    cpu->SP.val += 1;
+}
+
+static inline void dec_bc(CPU *cpu){
+    cpu->BC.val -= 1;
+}
+
+static inline void dec_de(CPU *cpu){
+    cpu->DE.val -= 1;
+}
+
+static inline void dec_hl(CPU *cpu){
+    cpu->HL.val -= 1;
+}
+
+static inline void dec_sp(CPU *cpu){
+    cpu->SP.val -= 1;
+}
+
 static Opcode opcodes[256]= {
     [0] = {"NOP",       4,      &nop},
 
@@ -1446,6 +1478,16 @@ static Opcode opcodes[256]= {
     [0x14] = {"INC D", 1, &inc_d},
     [0x24] = {"INC H", 1, &inc_h},
     [0x34] = {"INC (HL)", 3, &inc_m},
+
+    [0x03] = {"INC BC", 2, &inc_bc},
+    [0x13] = {"INC DE", 2, &inc_de},
+    [0x23] = {"INC HL", 2, &inc_hl},
+    [0x33] = {"INC SP", 2, &inc_sp},
+
+    [0x0B] = {"DEC BC", 2, &dec_bc},
+    [0x1B] = {"DEC DE", 2, &dec_de},
+    [0x2B] = {"DEC HL", 2, &dec_hl},
+    [0x3B] = {"DEC SP", 2, &dec_sp},
 
     [0xc9] = {"RET", 4, &ret},
     [0xc0] = {"RET NZ", 0, &ret_nz},

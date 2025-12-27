@@ -19,6 +19,7 @@ typedef struct
     u8 WRAM[0x1000];
     u8 IO[0x80];
     u8 IE;
+    u8 HRAM[0x7F];
 }Memory;
 
 static inline u8 *get_address(Memory *p_mem, const u16 addr){
@@ -32,6 +33,11 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
         // WRAM 
         printf("DATA FROM RAM AT: %x\n",addr);
         return &p_mem -> WRAM[addr - 0xC000];
+    }
+
+    else if (addr >= 0xFF80 && addr <= 0xFFFE){
+        // high ram area
+        return &p_mem -> HRAM [addr - 0xFF80];
     }
 
     else if (addr== 0xff07){
