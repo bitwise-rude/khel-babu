@@ -1499,7 +1499,31 @@ static inline void dec_sp(CPU *cpu){
 }
 
 
+static Opcode prefixed_opcodes[256]={
+
+};
+
+static inline void cb_helper(CPU *cpu){
+    printf("PREFIXED OPCODE HANDELING\n");
+
+    u8 micro_ins = get_next_8(cpu);
+    Opcode prefixed_opcode = prefixed_opcodes[micro_ins];
+
+    if(prefixed_opcode.opcode_method != NULL){
+        printf("Executing Prefixed opcode %s", prefixed_opcode.name);
+        prefixed_opcode.opcode_method(cpu);
+        cpu->cycles += prefixed_opcode.cycles;
+    }
+    else{
+        printf("NOt implemnted opcode: %x\n",micro_ins);
+        exit(0);
+    }
+}
+
+
 static Opcode opcodes[256]= {
+    [0xCB] = {"CB Prefixed", 0, &cb_helper},
+
     [0] = {"NOP",       4,      &nop},
 
     [0xc3] = {"JP a16", 4,      &jp_a16},
