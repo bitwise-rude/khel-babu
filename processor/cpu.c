@@ -1761,17 +1761,7 @@ static inline void bit_helper(CPU *cpu, u8 value, u8 bit){
     set_flag(cpu, HALF_CARRY);
 }
 
-static inline void bit_0_b(CPU *cpu){ bit_helper(cpu, cpu->BC.hi, 0); }
-static inline void bit_0_c(CPU *cpu){ bit_helper(cpu, cpu->BC.lo, 0); }
-static inline void bit_0_d(CPU *cpu){ bit_helper(cpu, cpu->DE.hi, 0); }
-static inline void bit_0_e(CPU *cpu){ bit_helper(cpu, cpu->DE.lo, 0); }
-static inline void bit_0_h(CPU *cpu){ bit_helper(cpu, cpu->HL.hi, 0); }
-static inline void bit_0_l(CPU *cpu){ bit_helper(cpu, cpu->HL.lo, 0); }
-static inline void bit_0_a(CPU *cpu){ bit_helper(cpu, cpu->AF.hi, 0); }
-static inline void bit_0_hl(CPU *cpu){
-    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
-    bit_helper(cpu, val, 0);
-}
+
 
 static inline void bit_0_b(CPU *cpu){ bit_helper(cpu, cpu->BC.hi, 0); }
 static inline void bit_0_c(CPU *cpu){ bit_helper(cpu, cpu->BC.lo, 0); }
@@ -1795,6 +1785,17 @@ static inline void bit_1_a(CPU *cpu){ bit_helper(cpu, cpu->AF.hi, 1); }
 static inline void bit_1_hl(CPU *cpu){
     u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
     bit_helper(cpu, val, 1);
+}
+static inline void bit_2_b(CPU *cpu){ bit_helper(cpu, cpu->BC.hi, 2); }
+static inline void bit_2_c(CPU *cpu){ bit_helper(cpu, cpu->BC.lo, 2); }
+static inline void bit_2_d(CPU *cpu){ bit_helper(cpu, cpu->DE.hi, 2); }
+static inline void bit_2_e(CPU *cpu){ bit_helper(cpu, cpu->DE.lo, 2); }
+static inline void bit_2_h(CPU *cpu){ bit_helper(cpu, cpu->HL.hi, 2); }
+static inline void bit_2_l(CPU *cpu){ bit_helper(cpu, cpu->HL.lo, 2); }
+static inline void bit_2_a(CPU *cpu){ bit_helper(cpu, cpu->AF.hi, 2); }
+static inline void bit_2_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    bit_helper(cpu, val, 2);
 }
 
 static inline void bit_3_b(CPU *cpu){ bit_helper(cpu, cpu->BC.hi, 3); }
@@ -1880,6 +1881,80 @@ static Opcode prefixed_opcodes[256]={
     [0x1D] = {"RR L", 2, &rr_l},
     [0x1E] = {"RR (HL)", 2, &rr_m},
     [0x1F] = {"RR a", 2, &rr_a},
+
+    [0x40] = {"BIT 0,B", 2, &bit_0_b},
+[0x41] = {"BIT 0,C", 2, &bit_0_c},
+[0x42] = {"BIT 0,D", 2, &bit_0_d},
+[0x43] = {"BIT 0,E", 2, &bit_0_e},
+[0x44] = {"BIT 0,H", 2, &bit_0_h},
+[0x45] = {"BIT 0,L", 2, &bit_0_l},
+[0x46] = {"BIT 0,(HL)", 3, &bit_0_hl},
+[0x47] = {"BIT 0,A", 2, &bit_0_a},
+
+
+[0x48] = {"BIT 1,B", 2, &bit_1_b},
+[0x49] = {"BIT 1,C", 2, &bit_1_c},
+[0x4A] = {"BIT 1,D", 2, &bit_1_d},
+[0x4B] = {"BIT 1,E", 2, &bit_1_e},
+[0x4C] = {"BIT 1,H", 2, &bit_1_h},
+[0x4D] = {"BIT 1,L", 2, &bit_1_l},
+[0x4E] = {"BIT 1,(HL)", 3, &bit_1_hl},
+[0x4F] = {"BIT 1,A", 2, &bit_1_a},
+
+[0x50] = {"BIT 2,B", 2, &bit_2_b},
+[0x51] = {"BIT 2,C", 2, &bit_2_c},
+[0x52] = {"BIT 2,D", 2, &bit_2_d},
+[0x53] = {"BIT 2,E", 2, &bit_2_e},
+[0x54] = {"BIT 2,H", 2, &bit_2_h},
+[0x55] = {"BIT 2,L", 2, &bit_2_l},
+[0x56] = {"BIT 2,(HL)", 3, &bit_2_hl},
+[0x57] = {"BIT 2,A", 2, &bit_2_a},
+
+[0x58] = {"BIT 3,B", 2, &bit_3_b},
+[0x59] = {"BIT 3,C", 2, &bit_3_c},
+[0x5A] = {"BIT 3,D", 2, &bit_3_d},
+[0x5B] = {"BIT 3,E", 2, &bit_3_e},
+[0x5C] = {"BIT 3,H", 2, &bit_3_h},
+[0x5D] = {"BIT 3,L", 2, &bit_3_l},
+[0x5E] = {"BIT 3,(HL)", 3, &bit_3_hl},
+[0x5F] = {"BIT 3,A", 2, &bit_3_a},
+
+[0x60] = {"BIT 4,B", 2, &bit_4_b},
+[0x61] = {"BIT 4,C", 2, &bit_4_c},
+[0x62] = {"BIT 4,D", 2, &bit_4_d},
+[0x63] = {"BIT 4,E", 2, &bit_4_e},
+[0x64] = {"BIT 4,H", 2, &bit_4_h},
+[0x65] = {"BIT 4,L", 2, &bit_4_l},
+[0x66] = {"BIT 4,(HL)", 3, &bit_4_hl},
+[0x67] = {"BIT 4,A", 2, &bit_4_a},
+
+[0x68] = {"BIT 5,B", 2, &bit_5_b},
+[0x69] = {"BIT 5,C", 2, &bit_5_c},
+[0x6A] = {"BIT 5,D", 2, &bit_5_d},
+[0x6B] = {"BIT 5,E", 2, &bit_5_e},
+[0x6C] = {"BIT 5,H", 2, &bit_5_h},
+[0x6D] = {"BIT 5,L", 2, &bit_5_l},
+[0x6E] = {"BIT 5,(HL)", 3, &bit_5_hl},
+[0x6F] = {"BIT 5,A", 2, &bit_5_a},
+
+[0x70] = {"BIT 6,B", 2, &bit_6_b},
+[0x71] = {"BIT 6,C", 2, &bit_6_c},
+[0x72] = {"BIT 6,D", 2, &bit_6_d},
+[0x73] = {"BIT 6,E", 2, &bit_6_e},
+[0x74] = {"BIT 6,H", 2, &bit_6_h},
+[0x75] = {"BIT 6,L", 2, &bit_6_l},
+[0x76] = {"BIT 6,(HL)", 3, &bit_6_hl},
+[0x77] = {"BIT 6,A", 2, &bit_6_a},
+
+[0x78] = {"BIT 7,B", 2, &bit_7_b},
+[0x79] = {"BIT 7,C", 2, &bit_7_c},
+[0x7A] = {"BIT 7,D", 2, &bit_7_d},
+[0x7B] = {"BIT 7,E", 2, &bit_7_e},
+[0x7C] = {"BIT 7,H", 2, &bit_7_h},
+[0x7D] = {"BIT 7,L", 2, &bit_7_l},
+[0x7E] = {"BIT 7,(HL)", 3, &bit_7_hl},
+[0x7F] = {"BIT 7,A", 2, &bit_7_a},
+
 };
 
 static inline void cb_helper(CPU *cpu){
