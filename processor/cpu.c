@@ -1498,9 +1498,137 @@ static inline void dec_sp(CPU *cpu){
     cpu->SP.val -= 1;
 }
 
+/* CB Prefixed One*/
+
+// helper functions
+static inline void srl_helper(CPU *cpu, u8 *reg){
+    u8 val = *reg;
+    u8 ans = val >> 1;
+    
+    // flag cy set to the  bit 0
+    if ((val && 0x01) == 1)
+    set_flag(cpu,CARRY);
+    else
+    unset_flag(cpu,CARRY);
+
+
+    *reg = ans;
+
+    // zero
+    if (ans == 0)
+    set_flag(cpu,ZERO);
+    else
+    unset_flag(cpu,ZERO);
+
+    // other reset
+    unset_flag(cpu,HALF_CARRY);
+    unset_flag(cpu,SUBTRACT);
+}
+
+
+// opcode functions
+static inline void srl_b(CPU *cpu){
+    srl_helper(cpu, &cpu->BC.hi);
+}
+
+static inline void srl_c(CPU *cpu){
+    srl_helper(cpu, &cpu->BC.lo);
+}
+static inline void srl_d(CPU *cpu){
+    srl_helper(cpu, &cpu->DE.hi);
+}
+static inline void srl_e(CPU *cpu){
+    srl_helper(cpu, &cpu->DE.lo);
+}
+static inline void srl_h(CPU *cpu){
+    srl_helper(cpu, &cpu->HL.hi);
+}
+static inline void srl_l(CPU *cpu){
+    srl_helper(cpu, &cpu->HL.lo);
+}
+static inline void srl_a(CPU *cpu){
+    srl_helper(cpu, &cpu->AF.hi);
+}
+static inline void srl_m(CPU *cpu){
+    srl_helper(cpu, get_address(cpu->p_memory, cpu->HL.val));
+}
+
+// rr
+static inline void rr_helper(CPU *cpu, u8 *reg){
+    u8 val = *reg;
+    u8 old_carry = flag_c(cpu) ? 1 : 0;
+    u8 ans;
+
+
+    if (val & 0x01)
+        set_flag(cpu, CARRY);
+    else
+        unset_flag(cpu, CARRY);
+
+    ans = (val >> 1) | (old_carry << 7);
+    *reg = ans;
+
+    if (ans == 0)
+        set_flag(cpu, ZERO);
+    else
+        unset_flag(cpu, ZERO);
+
+    unset_flag(cpu, SUBTRACT);
+    unset_flag(cpu, HALF_CARRY);
+}
+
+static inline void rr_b(CPU *cpu){
+    rr_helper(cpu, &cpu->BC.hi);
+}
+
+static inline void rr_c(CPU *cpu){
+    rr_helper(cpu, &cpu->BC.lo);
+}
+
+static inline void rr_d(CPU *cpu){
+    rr_helper(cpu, &cpu->DE.hi);
+}
+
+static inline void rr_e(CPU *cpu){
+    rr_helper(cpu, &cpu->DE.lo);
+}
+
+static inline void rr_h(CPU *cpu){
+    rr_helper(cpu, &cpu->HL.hi);
+}
+
+static inline void rr_l(CPU *cpu){
+    rr_helper(cpu, &cpu->HL.lo);
+}
+
+static inline void rr_a(CPU *cpu){
+    rr_helper(cpu, &cpu->AF.hi);
+}
+
+static inline void rr_m(CPU *cpu){
+    rr_helper(cpu, get_address(cpu->p_memory, cpu->HL.val));
+}
+
+
 
 static Opcode prefixed_opcodes[256]={
+    [0x38] = {"SRL B", 2, &srl_b},
+    [0x39] = {"SRL C", 2, &srl_c},
+    [0x3A] = {"SRL D", 2, &srl_d},
+    [0x3B] = {"SRL E", 2, &srl_e},
+    [0x3C] = {"SRL H", 2, &srl_h},
+    [0x3D] = {"SRL L", 2, &srl_l},
+    [0x3E] = {"SRL (HL)", 2, &srl_m},
+    [0x3F] = {"SRL A", 2, &srl_a},
 
+    [0x18] = {"RR B", 2, &rr_b},
+    [0x19] = {"RR C", 2, &rr_c},
+    [0x1A] = {"RR D", 2, &rr_d},
+    [0x1B] = {"RR E", 2, &rr_e},
+    [0x1C] = {"RR H", 2, &rr_h},
+    [0x1D] = {"RR L", 2, &rr_l},
+    [0x1E] = {"RR (HL)", 2, &rr_m},
+    [0x1F] = {"RR a", 2, &rr_a},
 };
 
 static inline void cb_helper(CPU *cpu){
