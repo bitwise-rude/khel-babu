@@ -1,7 +1,7 @@
 #include "cpu.h"
 
 /* Helper Macros */
-#define low (a) (u8)(a & 0x00FF) 
+#define low(a) (u8)(a & 0x00FF) 
 #define high(a) (u8) ((a & 0xFF00) >> 8)
 
 #define ZERO 0x80
@@ -85,6 +85,7 @@ static inline void dec_helper(CPU *cpu, u8 *reg){
 
 
 static inline void push(CPU *cpu, u8 val){
+
     cpu-> SP.val --;
     memory_write(cpu->p_memory, cpu->SP.val, val);
 }
@@ -111,7 +112,6 @@ static inline void call_helper(CPU *cpu){
 
 
 static inline void rst_helper(CPU *cpu, u16 addr){
-    exit(0);
     u16 pc = cpu->PC.val;      
 
     push(cpu, pc >> 8);       
@@ -289,7 +289,10 @@ static inline void xor_helper(CPU *cpu , const u8 operand){
     u8 result = cpu->AF.hi ^ operand;
 
     // z flag
-    unset_flag(cpu,ZERO);
+    if (result == 0)
+        set_flag(cpu,ZERO);
+    else
+        unset_flag(cpu,ZERO);
 
     // sub
     unset_flag(cpu,SUBTRACT);
@@ -1486,6 +1489,7 @@ static inline void dec_sp(CPU *cpu){
     cpu->SP.val -= 1;
 }
 
+
 static Opcode opcodes[256]= {
     [0] = {"NOP",       4,      &nop},
 
@@ -1555,7 +1559,7 @@ static Opcode opcodes[256]= {
     [0x53] = {"LD D, E", 1, &ld_d_e},
     [0x54] = {"LD D, H", 1, &ld_d_h},
     [0x55] = {"LD D, L", 1, &ld_d_l},
-    [0x57] = {"LD D, A", 1, &ld_b_a},
+    [0x57] = {"LD D, A", 1, &ld_d_a},
     [0x58] = {"LD E, B", 1, &ld_e_b},
     [0x59] = {"LD E, C", 1, &ld_e_c},
     [0x5A] = {"LD E, D", 1, &ld_e_d},
@@ -1707,10 +1711,10 @@ static Opcode opcodes[256]= {
     [0xEE] = {"XOR A, d8", 2, &xor_d8},
     [0xFE] = {"CP A, d8", 2, &cp_d8},
 
-    [0x09] = {"DEC B", 1, &dec_b},
-    [0x19] = {"DEC D", 1, &dec_d},
-    [0x29] = {"DEC H", 1, &dec_h},
-    [0x39] = {"DEC (HL)", 3, &dec_m},
+    [0x05] = {"DEC B", 1, &dec_b},
+    [0x15] = {"DEC D", 1, &dec_d},
+    [0x25] = {"DEC H", 1, &dec_h},
+    [0x35] = {"DEC (HL)", 3, &dec_m},
 
     [0x0D] = {"DEC C", 1, &dec_c},
     [0x1D] = {"DEC E", 1, &dec_e},

@@ -24,7 +24,6 @@ typedef struct
 }Memory;
 
 static inline u8 *get_address(Memory *p_mem, const u16 addr){
-    printf("HE00");
     if (addr > 0x0000 && addr < 0x8000){
         // Cartridge Rom
         printf("DATA FROM CARTRIDGE ROM AT: %.4xH\n",addr);
@@ -113,7 +112,7 @@ static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
         printf("Writing Unimplemented memory location %x and data %x\n",addr, data);
         exit(0);
     }
-    printf("WRITING DATA TO CARTRIDGE ROM AT: %x and Value: %x\n",addr,data);
+    printf("WRITING  AT: %x and Value: %x\n",addr,data);
     *add = data;
    
 }

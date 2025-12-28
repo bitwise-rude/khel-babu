@@ -18,3 +18,4 @@ or through e-mail: dareludum@gmail.com
 # References That I am currently Using
 https://gbdev.io/pandocs/Memory_Map.html
 https://meganesu.github.io/generate-gb-opcodes/
+https://github.com/robert/gameboy-doctor
