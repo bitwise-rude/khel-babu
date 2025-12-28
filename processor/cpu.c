@@ -60,6 +60,7 @@ static inline u16 get_next_16(CPU *cpu){
 }
 
 static inline void dec_helper(CPU *cpu, u8 *reg){
+
     u8 prev = *reg;
     u8 result = prev - 1;
 
@@ -114,8 +115,8 @@ static inline void call_helper(CPU *cpu){
 static inline void rst_helper(CPU *cpu, u16 addr){
     u16 pc = cpu->PC.val;      
 
-    push(cpu, pc >> 8);       
     push(cpu, pc & 0xFF);     
+    push(cpu, pc >> 8);       
 
     cpu->PC.val = addr;       
 
@@ -123,6 +124,7 @@ static inline void rst_helper(CPU *cpu, u16 addr){
 
 
 static inline void ld_r_r_helper(u8 *dst, u8 *src){
+    
     *dst = *src;
 }
 
@@ -1406,6 +1408,13 @@ static inline void dec_d(CPU *cpu){
 }
 
 static inline void dec_m(CPU *cpu){
+    // if (*src == 0xe4 && *dst == 0x1B){
+        printf("FOUND\n");
+        int i ;
+        printf("value : %x",cpu->HL.val);
+        scanf("%d",&i);
+        // exit(0);
+    // }
     dec_helper(cpu,get_address(cpu->p_memory,cpu->HL.val));
 }
 
@@ -1430,7 +1439,7 @@ static inline void push_hl(CPU *cpu){
 }
 
 static inline void push_af(CPU *cpu){
-    push(cpu, cpu->AF.lo);
+    push(cpu, cpu->AF.lo &  0xF0);
     push(cpu, cpu->AF.hi);
 }
 
@@ -1450,6 +1459,7 @@ static inline void pop_hl(CPU *cpu){
 }
 
 static inline void pop_af(CPU *cpu){
+ 
     cpu->AF.hi = pop(cpu);
     cpu->AF.lo = pop(cpu);
     cpu->AF.lo &= 0xF0;

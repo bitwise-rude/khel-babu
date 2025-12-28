@@ -24,6 +24,8 @@ typedef struct
 }Memory;
 
 static inline u8 *get_address(Memory *p_mem, const u16 addr){
+
+    
     if (addr<= 0x7FFF){
         // Cartridge Rom
         printf("DATA FROM CARTRIDGE ROM AT: %.4xH\n",addr);
@@ -37,8 +39,6 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
 
     else if (addr >= 0xC000 && addr <= 0xDFFF){
         // WRAM 
-        
-    
         printf("DATA FROM RAM AT: %x\n",addr);
         return &p_mem -> WRAM[addr - 0xC000];
     }
@@ -52,38 +52,47 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
         // some timer shit 
 
         printf("TIMER STATE IS NOT IMPLEMENTED YET");
-        return &p_mem -> IO[0xff07 - 0xff00];
+        return &p_mem -> IO[addr - 0xFF00];
     }
     else if (addr== 0xff0f){
         // some interrupt shit 
-        printf("Interrupt  IS NOT IMPLEMENTED YET");
-        return &p_mem -> IO[0xff0f - 0xff00];
+    
+        return &p_mem -> IO[addr - 0xFF00];
     }
     else if (addr== 0xffff){
         // more interrupt shit interrupt shit 
-        printf("Interrupt  IS NOT IMPLEMENTED YET");
+
         return &p_mem -> IE;
     }
     else if (addr== 0xff26){
         // audio shit 
         printf("Audio  IS NOT IMPLEMENTED YET");
-        return &p_mem -> IO[0xff26 - 0xff00];
+        return &p_mem -> IO[addr - 0xFF00];
     }
     else if (addr== 0xff25){
         // audio sound panning shit 
         printf("Audio  IS NOT IMPLEMENTED YET");
-        return &p_mem -> IO[0xff25 - 0xff00];
+        return &p_mem -> IO[addr - 0xFF00];
     }
     else if (addr== 0xff24){
         // audio master volume shit 
         printf("Audio  IS NOT IMPLEMENTED YET");
-        return &p_mem -> IO[0xff24 - 0xff00];
+        return &p_mem -> IO[addr - 0xFF00];
     }
 
     else if (addr == 0xff40){
         // not implemented LCDC : LCD CONTROL
      
-        return &p_mem -> IO[0xff40 - 0xff00];
+        return &p_mem -> IO[addr - 0xFF00];
+    }
+
+    else if (addr == 0xFF42 || addr == 0xFF43){
+        // scrolling not implemented
+        return &p_mem -> IO[addr - 0xFF00];
+    }
+    else if (addr == 0xFF47){
+                // palleted not implemented
+        return &p_mem -> IO[addr - 0xFF00];
     }
 
     else{
@@ -110,10 +119,11 @@ static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
 
 
 static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
+
     printf("WRITING ");
     u8 *add =  get_address(p_mem,addr);
 
-
+    
     if (add == NULL){
         printf("Writing Unimplemented memory location %x and data %x\n",addr, data);
         exit(0);
