@@ -1035,6 +1035,38 @@ static inline void ld_m_e(CPU *cpu){
 }
 
 // weird dmg ld stuff
+static inline void ld_sp_hl(CPU *cpu){
+    cpu->SP.val = cpu->HL.val;
+}
+
+static inline void ld_hl_sp_s8(CPU *cpu){
+    s8 si8 = (s8) get_next_8(cpu);
+    u16 sp = cpu->SP.val;
+    u16 res = sp + si8;
+
+    if ( ((sp & 0x0F) + (si8 & 0x0F)) > 0x0F )
+        set_flag(cpu, HALF_CARRY);
+    else
+        unset_flag(cpu, HALF_CARRY);
+
+    if ( ((sp & 0xFF) + (si8 & 0xFF)) > 0xFF )
+        set_flag(cpu, CARRY);
+    else
+        unset_flag(cpu, CARRY);
+
+    cpu->HL.val = res;
+
+    unset_flag(cpu, ZERO);
+    unset_flag(cpu, SUBTRACT);
+}
+
+
+static inline void ld_a16_sp(CPU *cpu){
+    u16 operand = get_next_16(cpu);
+    memory_write(cpu->p_memory, operand,cpu->SP.lo);
+    memory_write(cpu->p_memory, operand+1, cpu->SP.hi);
+}
+
 static inline void ld_a8_a(CPU *cpu){
     u8 operand = get_next_8(cpu);
 
@@ -1718,6 +1750,116 @@ static inline void rr_m(CPU *cpu){
     rr_helper(cpu, get_address(cpu->p_memory, cpu->HL.val));
 }
 
+// bit 
+static inline void bit_helper(CPU *cpu, u8 value, u8 bit){
+    if ((value & (1 << bit)) == 0)
+        set_flag(cpu, ZERO);
+    else
+        unset_flag(cpu, ZERO);
+
+    unset_flag(cpu, SUBTRACT);
+    set_flag(cpu, HALF_CARRY);
+}
+
+static inline void bit_0_b(CPU *cpu){ bit_helper(cpu, cpu->BC.hi, 0); }
+static inline void bit_0_c(CPU *cpu){ bit_helper(cpu, cpu->BC.lo, 0); }
+static inline void bit_0_d(CPU *cpu){ bit_helper(cpu, cpu->DE.hi, 0); }
+static inline void bit_0_e(CPU *cpu){ bit_helper(cpu, cpu->DE.lo, 0); }
+static inline void bit_0_h(CPU *cpu){ bit_helper(cpu, cpu->HL.hi, 0); }
+static inline void bit_0_l(CPU *cpu){ bit_helper(cpu, cpu->HL.lo, 0); }
+static inline void bit_0_a(CPU *cpu){ bit_helper(cpu, cpu->AF.hi, 0); }
+static inline void bit_0_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    bit_helper(cpu, val, 0);
+}
+
+static inline void bit_0_b(CPU *cpu){ bit_helper(cpu, cpu->BC.hi, 0); }
+static inline void bit_0_c(CPU *cpu){ bit_helper(cpu, cpu->BC.lo, 0); }
+static inline void bit_0_d(CPU *cpu){ bit_helper(cpu, cpu->DE.hi, 0); }
+static inline void bit_0_e(CPU *cpu){ bit_helper(cpu, cpu->DE.lo, 0); }
+static inline void bit_0_h(CPU *cpu){ bit_helper(cpu, cpu->HL.hi, 0); }
+static inline void bit_0_l(CPU *cpu){ bit_helper(cpu, cpu->HL.lo, 0); }
+static inline void bit_0_a(CPU *cpu){ bit_helper(cpu, cpu->AF.hi, 0); }
+static inline void bit_0_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    bit_helper(cpu, val, 0);
+}
+
+static inline void bit_1_b(CPU *cpu){ bit_helper(cpu, cpu->BC.hi, 1); }
+static inline void bit_1_c(CPU *cpu){ bit_helper(cpu, cpu->BC.lo, 1); }
+static inline void bit_1_d(CPU *cpu){ bit_helper(cpu, cpu->DE.hi, 1); }
+static inline void bit_1_e(CPU *cpu){ bit_helper(cpu, cpu->DE.lo, 1); }
+static inline void bit_1_h(CPU *cpu){ bit_helper(cpu, cpu->HL.hi, 1); }
+static inline void bit_1_l(CPU *cpu){ bit_helper(cpu, cpu->HL.lo, 1); }
+static inline void bit_1_a(CPU *cpu){ bit_helper(cpu, cpu->AF.hi, 1); }
+static inline void bit_1_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    bit_helper(cpu, val, 1);
+}
+
+static inline void bit_3_b(CPU *cpu){ bit_helper(cpu, cpu->BC.hi, 3); }
+static inline void bit_3_c(CPU *cpu){ bit_helper(cpu, cpu->BC.lo, 3); }
+static inline void bit_3_d(CPU *cpu){ bit_helper(cpu, cpu->DE.hi, 3); }
+static inline void bit_3_e(CPU *cpu){ bit_helper(cpu, cpu->DE.lo, 3); }
+static inline void bit_3_h(CPU *cpu){ bit_helper(cpu, cpu->HL.hi, 3); }
+static inline void bit_3_l(CPU *cpu){ bit_helper(cpu, cpu->HL.lo, 3); }
+static inline void bit_3_a(CPU *cpu){ bit_helper(cpu, cpu->AF.hi, 3); }
+static inline void bit_3_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    bit_helper(cpu, val, 3);
+}
+
+static inline void bit_4_b(CPU *cpu){ bit_helper(cpu, cpu->BC.hi, 4); }
+static inline void bit_4_c(CPU *cpu){ bit_helper(cpu, cpu->BC.lo, 4); }
+static inline void bit_4_d(CPU *cpu){ bit_helper(cpu, cpu->DE.hi, 4); }
+static inline void bit_4_e(CPU *cpu){ bit_helper(cpu, cpu->DE.lo, 4); }
+static inline void bit_4_h(CPU *cpu){ bit_helper(cpu, cpu->HL.hi, 4); }
+static inline void bit_4_l(CPU *cpu){ bit_helper(cpu, cpu->HL.lo, 4); }
+static inline void bit_4_a(CPU *cpu){ bit_helper(cpu, cpu->AF.hi, 4); }
+static inline void bit_4_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    bit_helper(cpu, val, 4);
+}
+
+static inline void bit_5_b(CPU *cpu){ bit_helper(cpu, cpu->BC.hi, 5); }
+static inline void bit_5_c(CPU *cpu){ bit_helper(cpu, cpu->BC.lo, 5); }
+static inline void bit_5_d(CPU *cpu){ bit_helper(cpu, cpu->DE.hi, 5); }
+static inline void bit_5_e(CPU *cpu){ bit_helper(cpu, cpu->DE.lo, 5); }
+static inline void bit_5_h(CPU *cpu){ bit_helper(cpu, cpu->HL.hi, 5); }
+static inline void bit_5_l(CPU *cpu){ bit_helper(cpu, cpu->HL.lo, 5); }
+static inline void bit_5_a(CPU *cpu){ bit_helper(cpu, cpu->AF.hi, 5); }
+static inline void bit_5_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    bit_helper(cpu, val, 5);
+}
+
+static inline void bit_6_b(CPU *cpu){ bit_helper(cpu, cpu->BC.hi, 6); }
+static inline void bit_6_c(CPU *cpu){ bit_helper(cpu, cpu->BC.lo, 6); }
+static inline void bit_6_d(CPU *cpu){ bit_helper(cpu, cpu->DE.hi, 6); }
+static inline void bit_6_e(CPU *cpu){ bit_helper(cpu, cpu->DE.lo, 6); }
+static inline void bit_6_h(CPU *cpu){ bit_helper(cpu, cpu->HL.hi, 6); }
+static inline void bit_6_l(CPU *cpu){ bit_helper(cpu, cpu->HL.lo, 6); }
+static inline void bit_6_a(CPU *cpu){ bit_helper(cpu, cpu->AF.hi, 6); }
+static inline void bit_6_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    bit_helper(cpu, val, 6);
+}
+
+static inline void bit_7_b(CPU *cpu){ bit_helper(cpu, cpu->BC.hi, 7); }
+static inline void bit_7_c(CPU *cpu){ bit_helper(cpu, cpu->BC.lo, 7); }
+static inline void bit_7_d(CPU *cpu){ bit_helper(cpu, cpu->DE.hi, 7); }
+static inline void bit_7_e(CPU *cpu){ bit_helper(cpu, cpu->DE.lo, 7); }
+static inline void bit_7_h(CPU *cpu){ bit_helper(cpu, cpu->HL.hi, 7); }
+static inline void bit_7_l(CPU *cpu){ bit_helper(cpu, cpu->HL.lo, 7); }
+static inline void bit_7_a(CPU *cpu){ bit_helper(cpu, cpu->AF.hi, 7); }
+static inline void bit_7_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    bit_helper(cpu, val, 7);
+}
+
+
+
+
 
 
 static Opcode prefixed_opcodes[256]={
@@ -1881,6 +2023,7 @@ static Opcode opcodes[256]= {
     [0x12] = {"LD (DE), A", 2, &ld_de_a},
     [0x22] = {"LD (HL+), A", 2, &ld_hlp_a},
     [0x32] = {"LD (HL-), A", 2, &ld_hlm_a},
+    [0x08] = {"LD (a16), SP", 5, &ld_a16_sp},
 
 
     [0x06] = {"LD B, d8", 2, &ld_b_d8},
@@ -1904,6 +2047,9 @@ static Opcode opcodes[256]= {
     [0xFA] = {"LD A, (a16)", 4, &ld_a_a16},
     [0xE2] = {"LD (m), A", 2, &ld_mc_a},
     [0xF2] = {"LD A, (m)", 2, &ld_a_mc},
+
+    [0xf9] = {"LD SP, HL",2, &ld_sp_hl},
+    [0xf8] = {"LD HL, SP + s8",3, &ld_sp_hl},
 
     [0x80] = {"ADD B", 1, &add_a_b},
     [0x81] = {"ADD C", 1, &add_a_c},
