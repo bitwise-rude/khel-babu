@@ -59,6 +59,26 @@ static inline u16 get_next_16(CPU *cpu){
     return combine_bytes(hi,lo);
 }
 
+static inline void add_hl_helper(CPU *cpu, u16 value){
+    u32 hl = cpu->HL.val;
+    u32 res = hl + value;
+
+    if ( ((hl & 0x0FFF) + (value & 0x0FFF)) > 0x0FFF )
+        set_flag(cpu, HALF_CARRY);
+    else
+        unset_flag(cpu, HALF_CARRY);
+
+    if (res & 0x10000)
+        set_flag(cpu, CARRY);
+    else
+        unset_flag(cpu, CARRY);
+
+    cpu->HL.val = (u16)res;
+
+    unset_flag(cpu, SUBTRACT);
+}
+
+
 static inline void dec_helper(CPU *cpu, u8 *reg){
 
     u8 prev = *reg;
@@ -143,6 +163,7 @@ static inline int flag_h(const CPU *cpu) {
 static inline int flag_c(const CPU *cpu) {
     return (cpu->AF.lo & CARRY) != 0;
 }
+
 
 
 
@@ -354,6 +375,10 @@ static inline void jp_a16( CPU *cpu){
     cpu -> PC.val =  get_next_16(cpu);
 }
 
+static inline void jp_hl(CPU *cpu){
+    cpu-> PC.val = cpu->HL.val;
+}
+
 static inline void jr_s8(CPU *cpu){
     jr_helper(cpu);
     cpu->cycles += 3;
@@ -451,6 +476,23 @@ static inline void jr_c(CPU *cpu){
     cpu -> cycles += 2;
 
 }
+
+static inline void add_hl_bc(CPU *cpu){
+    add_hl_helper(cpu, cpu->BC.val);
+}
+
+static inline void add_hl_de(CPU *cpu){
+    add_hl_helper(cpu, cpu->DE.val);
+}
+
+static inline void add_hl_hl(CPU *cpu){
+    add_hl_helper(cpu, cpu->HL.val);
+}
+
+static inline void add_hl_sp(CPU *cpu){
+    add_hl_helper(cpu, cpu->SP.val);
+}
+
 
 
 static inline void di( CPU *cpu){
@@ -672,8 +714,22 @@ static inline void ret(CPU *cpu){
 
 static inline void ret_nz(CPU *cpu){
     if (! flag_z(cpu)){
-        u8 lo = pop(cpu);
         u8 hi = pop(cpu);
+        u8 lo = pop(cpu);
+
+        cpu->PC.val = combine_bytes(hi,lo);
+
+        // cycles
+        cpu->cycles += 5;
+        return;
+    }
+
+    cpu->cycles += 2;
+}
+static inline void ret_z(CPU *cpu){
+    if ( flag_z(cpu)){
+        u8 hi = pop(cpu);
+        u8 lo = pop(cpu);
 
         cpu->PC.val = combine_bytes(hi,lo);
 
@@ -687,8 +743,24 @@ static inline void ret_nz(CPU *cpu){
 
 static inline void ret_nc(CPU *cpu){
     if (! flag_c(cpu)){
-        u8 lo = pop(cpu);
         u8 hi = pop(cpu);
+        u8 lo = pop(cpu);
+
+        cpu->PC.val = combine_bytes(hi,lo);
+
+        // cycles
+        cpu->cycles += 4;
+        return ;
+        // TODO : maybe a bug in this thing
+    }
+
+    cpu->cycles += 3;
+}
+
+static inline void ret_c(CPU *cpu){
+    if (flag_c(cpu)){
+        u8 hi = pop(cpu);
+        u8 lo = pop(cpu);
 
         cpu->PC.val = combine_bytes(hi,lo);
 
@@ -1409,10 +1481,10 @@ static inline void dec_d(CPU *cpu){
 
 static inline void dec_m(CPU *cpu){
     // if (*src == 0xe4 && *dst == 0x1B){
-        printf("FOUND\n");
-        int i ;
-        printf("value : %x",cpu->HL.val);
-        scanf("%d",&i);
+        // printf("FOUND\n");
+        // int i ;
+        // printf("value : %x",cpu->HL.val);
+        // scanf("%d",&i);
         // exit(0);
     // }
     dec_helper(cpu,get_address(cpu->p_memory,cpu->HL.val));
@@ -1498,6 +1570,43 @@ static inline void dec_sp(CPU *cpu){
     cpu->SP.val -= 1;
 }
 
+static inline void rrca(CPU *cpu){
+    u8 val = cpu->AF.hi;
+    u8 bit0 = val & 0x01;
+
+    cpu->AF.hi = (val >> 1) | (bit0 << 7);
+
+    if (bit0)
+        set_flag(cpu, CARRY);
+    else
+        unset_flag(cpu, CARRY);
+
+    // Flags
+    unset_flag(cpu, ZERO);        
+    unset_flag(cpu, SUBTRACT);
+    unset_flag(cpu, HALF_CARRY);
+}
+
+static inline void rra(CPU *cpu){
+    u8 val = cpu->AF.hi;
+    u8 old_carry = flag_c(cpu) ? 1 : 0;
+    u8 bit0 = val & 0x01;
+
+    cpu->AF.hi = (val >> 1) | (old_carry << 7);
+
+    if (bit0)
+        set_flag(cpu, CARRY);
+    else
+        unset_flag(cpu, CARRY);
+
+    // Flags
+    unset_flag(cpu, ZERO);       
+    unset_flag(cpu, SUBTRACT);
+    unset_flag(cpu, HALF_CARRY);
+}
+
+
+
 /* CB Prefixed One*/
 
 // helper functions
@@ -1506,7 +1615,7 @@ static inline void srl_helper(CPU *cpu, u8 *reg){
     u8 ans = val >> 1;
     
     // flag cy set to the  bit 0
-    if ((val && 0x01) == 1)
+    if ((val & 0x01))
     set_flag(cpu,CARRY);
     else
     unset_flag(cpu,CARRY);
@@ -1655,6 +1764,7 @@ static Opcode opcodes[256]= {
     [0] = {"NOP",       4,      &nop},
 
     [0xc3] = {"JP a16", 4,      &jp_a16},
+    [0xe9] = {"JP HL", 1,   &jp_hl},
     
     [0x20] = {"JR NZ, s8", 0, &jr_nz},
     [0x30] = {"JR NC, s8", 0, &jr_nc},
@@ -1696,6 +1806,8 @@ static Opcode opcodes[256]= {
     [0xc9] = {"RET", 4, &ret},
     [0xc0] = {"RET NZ", 0, &ret_nz},
     [0xd0] = {"RET NC", 0, &ret_nc},
+    [0xc8] = {"RET Z", 0, &ret_z},
+    [0xd8] = {"RET C", 0, &ret_c},
 
     [0x40] = {"LD B, B", 1, &ld_b_b},
     [0x41] = {"LD B, C", 1, &ld_b_c},
@@ -1810,6 +1922,11 @@ static Opcode opcodes[256]= {
     [0x8E] = {"ADc M", 2, &adc_m},
     [0x8F] = {"ADc A", 1, &adc_a},
 
+    [0x09] = {"ADD HL, BC", 2, &add_hl_bc},
+    [0x19] = {"ADD HL, DE", 2, &add_hl_de},
+    [0x29] = {"ADD HL, HL", 2, &add_hl_hl},
+    [0x39] = {"ADD HL, SP", 2, &add_hl_sp},
+
     [0x90] = {"SUB B", 1, &sub_b},
     [0x91] = {"SUB C", 1, &sub_c},
     [0x92] = {"SUB D", 1, &sub_d},
@@ -1897,6 +2014,11 @@ static Opcode opcodes[256]= {
     [0xd5] = {"PUSH DE",4, &push_de},
     [0xe5] = {"PUSH HL",4, &push_hl},
     [0xf5] = {"PUSH AF",4, &push_af},
+
+    [0x0f] = {"RRCA", 1, &rrca},
+    [0x1f] = {"RRA", 1 , &rra},
+
+
     
 };
 

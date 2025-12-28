@@ -94,6 +94,10 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
                 // palleted not implemented
         return &p_mem -> IO[addr - 0xFF00];
     }
+    else if (addr == 0xFF01 || addr == 0xFF02){
+        // serial transfer not implemented
+        return &p_mem -> IO [addr - 0xFF00];
+    }
 
     else{
         printf("NOT IMPLEMENTED\n");
