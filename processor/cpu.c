@@ -100,8 +100,8 @@ static inline void call_helper(CPU *cpu){
     u16 addr = get_next_16(cpu);   
 
 
-    push(cpu, cpu->PC.hi);
     push(cpu, cpu->PC.lo);
+    push(cpu, cpu->PC.hi);
 
     cpu->PC.val = addr;
     cpu->cycles += 6;
@@ -662,8 +662,8 @@ static inline void inc_m(CPU *cpu)
 }
 
 static inline void ret(CPU *cpu){
-    u8 lo = pop(cpu);
     u8 hi = pop(cpu);
+    u8 lo = pop(cpu);
 
     cpu->PC.val = combine_bytes(hi,lo);
 }
@@ -1051,10 +1051,7 @@ static inline void ld_a_de(CPU *cpu){
 }
 
 static inline void ld_a_hlp(CPU *cpu){
-    // int i ;
-    // printf("%x and %x",cpu->HL.val, memory_read_8(cpu->p_memory, cpu->HL.val));
-    // scanf("%d", &i);
-    // exit(0);
+   
     cpu->AF.hi = memory_read_8(cpu->p_memory, cpu->HL.val);
     cpu->HL.val ++;
 }
@@ -1418,43 +1415,45 @@ static inline void dec_h(CPU *cpu){
 
 // stack operations
 static inline void push_bc(CPU *cpu){
-    push(cpu, cpu->BC.hi);
     push(cpu, cpu->BC.lo);
+    push(cpu, cpu->BC.hi);
 }
 
 static inline void push_de(CPU *cpu){
-    push(cpu, cpu->DE.hi);
     push(cpu, cpu->DE.lo);
+    push(cpu, cpu->DE.hi);
 }
 
 static inline void push_hl(CPU *cpu){
-    push(cpu, cpu->HL.hi);
     push(cpu, cpu->HL.lo);
+    push(cpu, cpu->HL.hi);
 }
 
 static inline void push_af(CPU *cpu){
-    push(cpu, cpu->AF.hi);
     push(cpu, cpu->AF.lo);
+    push(cpu, cpu->AF.hi);
 }
 
 static inline void pop_bc(CPU *cpu){
-    cpu->BC.lo = pop(cpu);
     cpu->BC.hi = pop(cpu);
+    cpu->BC.lo = pop(cpu);
 }
 
 static inline void pop_de(CPU *cpu){
-    cpu->DE.lo = pop(cpu);
     cpu->DE.hi = pop(cpu);
+    cpu->DE.lo = pop(cpu);
 }
 
 static inline void pop_hl(CPU *cpu){
-    cpu->HL.lo = pop(cpu);
     cpu->HL.hi = pop(cpu);
+    cpu->HL.lo = pop(cpu);
 }
 
 static inline void pop_af(CPU *cpu){
-    cpu->AF.lo = pop(cpu);
     cpu->AF.hi = pop(cpu);
+    cpu->AF.lo = pop(cpu);
+    cpu->AF.lo &= 0xF0;
+
 }
 
 static inline void inc_bc(CPU *cpu){
