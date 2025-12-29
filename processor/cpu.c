@@ -1858,6 +1858,128 @@ static inline void bit_7_hl(CPU *cpu){
     bit_helper(cpu, val, 7);
 }
 
+// res
+static inline void res_helper(u8 *value, u8 bit){
+    *value &= ~(1 << bit);
+}
+
+static inline void res_0_b(CPU *cpu){ res_helper(&cpu->BC.hi, 0); }
+static inline void res_0_c(CPU *cpu){ res_helper(&cpu->BC.lo, 0); }
+static inline void res_0_d(CPU *cpu){ res_helper(&cpu->DE.hi, 0); }
+static inline void res_0_e(CPU *cpu){ res_helper(&cpu->DE.lo, 0); }
+static inline void res_0_h(CPU *cpu){ res_helper(&cpu->HL.hi, 0); }
+static inline void res_0_l(CPU *cpu){ res_helper(&cpu->HL.lo, 0); }
+static inline void res_0_a(CPU *cpu){ res_helper(&cpu->AF.hi, 0); }
+
+static inline void res_0_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    res_helper(&val, 0);
+    memory_write(cpu->p_memory, cpu->HL.val, val);
+}
+
+
+static inline void res_1_b(CPU *cpu){ res_helper(&cpu->BC.hi, 1); }
+static inline void res_1_c(CPU *cpu){ res_helper(&cpu->BC.lo, 1); }
+static inline void res_1_d(CPU *cpu){ res_helper(&cpu->DE.hi, 1); }
+static inline void res_1_e(CPU *cpu){ res_helper(&cpu->DE.lo, 1); }
+static inline void res_1_h(CPU *cpu){ res_helper(&cpu->HL.hi, 1); }
+static inline void res_1_l(CPU *cpu){ res_helper(&cpu->HL.lo, 1); }
+static inline void res_1_a(CPU *cpu){ res_helper(&cpu->AF.hi, 1); }
+
+static inline void res_1_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    res_helper(&val, 1);
+    memory_write(cpu->p_memory, cpu->HL.val, val);
+}
+
+static inline void res_2_b(CPU *cpu){ res_helper(&cpu->BC.hi, 2); }
+static inline void res_2_c(CPU *cpu){ res_helper(&cpu->BC.lo, 2); }
+static inline void res_2_d(CPU *cpu){ res_helper(&cpu->DE.hi, 2); }
+static inline void res_2_e(CPU *cpu){ res_helper(&cpu->DE.lo, 2); }
+static inline void res_2_h(CPU *cpu){ res_helper(&cpu->HL.hi, 2); }
+static inline void res_2_l(CPU *cpu){ res_helper(&cpu->HL.lo, 2); }
+static inline void res_2_a(CPU *cpu){ res_helper(&cpu->AF.hi, 2); }
+
+static inline void res_2_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    res_helper(&val, 2);
+    memory_write(cpu->p_memory, cpu->HL.val, val);
+}
+
+static inline void res_3_b(CPU *cpu){ res_helper(&cpu->BC.hi, 3); }
+static inline void res_3_c(CPU *cpu){ res_helper(&cpu->BC.lo, 3); }
+static inline void res_3_d(CPU *cpu){ res_helper(&cpu->DE.hi, 3); }
+static inline void res_3_e(CPU *cpu){ res_helper(&cpu->DE.lo, 3); }
+static inline void res_3_h(CPU *cpu){ res_helper(&cpu->HL.hi, 3); }
+static inline void res_3_l(CPU *cpu){ res_helper(&cpu->HL.lo, 3); }
+static inline void res_3_a(CPU *cpu){ res_helper(&cpu->AF.hi, 3); }
+
+static inline void res_3_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    res_helper(&val, 3);
+    memory_write(cpu->p_memory, cpu->HL.val, val);
+}
+
+static inline void res_4_b(CPU *cpu){ res_helper(&cpu->BC.hi, 4); }
+static inline void res_4_c(CPU *cpu){ res_helper(&cpu->BC.lo, 4); }
+static inline void res_4_d(CPU *cpu){ res_helper(&cpu->DE.hi, 4); }
+static inline void res_4_e(CPU *cpu){ res_helper(&cpu->DE.lo, 4); }
+static inline void res_4_h(CPU *cpu){ res_helper(&cpu->HL.hi, 4); }
+static inline void res_4_l(CPU *cpu){ res_helper(&cpu->HL.lo, 4); }
+static inline void res_4_a(CPU *cpu){ res_helper(&cpu->AF.hi, 4); }
+
+static inline void res_4_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    res_helper(&val, 4);
+    memory_write(cpu->p_memory, cpu->HL.val, val);
+}
+
+static inline void res_5_b(CPU *cpu){ res_helper(&cpu->BC.hi, 5); }
+static inline void res_5_c(CPU *cpu){ res_helper(&cpu->BC.lo, 5); }
+static inline void res_5_d(CPU *cpu){ res_helper(&cpu->DE.hi, 5); }
+static inline void res_5_e(CPU *cpu){ res_helper(&cpu->DE.lo, 5); }
+static inline void res_5_h(CPU *cpu){ res_helper(&cpu->HL.hi, 5); }
+static inline void res_5_l(CPU *cpu){ res_helper(&cpu->HL.lo, 5); }
+static inline void res_5_a(CPU *cpu){ res_helper(&cpu->AF.hi, 5); }
+
+static inline void res_5_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    res_helper(&val, 5);
+    memory_write(cpu->p_memory, cpu->HL.val, val);
+}
+
+static inline void res_6_b(CPU *cpu){ res_helper(&cpu->BC.hi, 6); }
+static inline void res_6_c(CPU *cpu){ res_helper(&cpu->BC.lo, 6); }
+static inline void res_6_d(CPU *cpu){ res_helper(&cpu->DE.hi, 6); }
+static inline void res_6_e(CPU *cpu){ res_helper(&cpu->DE.lo, 6); }
+static inline void res_6_h(CPU *cpu){ res_helper(&cpu->HL.hi, 6); }
+static inline void res_6_l(CPU *cpu){ res_helper(&cpu->HL.lo, 6); }
+static inline void res_6_a(CPU *cpu){ res_helper(&cpu->AF.hi, 6); }
+
+static inline void res_6_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    res_helper(&val, 6);
+    memory_write(cpu->p_memory, cpu->HL.val, val);
+}
+
+static inline void res_7_b(CPU *cpu){ res_helper(&cpu->BC.hi, 7); }
+static inline void res_7_c(CPU *cpu){ res_helper(&cpu->BC.lo, 7); }
+static inline void res_7_d(CPU *cpu){ res_helper(&cpu->DE.hi, 7); }
+static inline void res_7_e(CPU *cpu){ res_helper(&cpu->DE.lo, 7); }
+static inline void res_7_h(CPU *cpu){ res_helper(&cpu->HL.hi, 7); }
+static inline void res_7_l(CPU *cpu){ res_helper(&cpu->HL.lo, 7); }
+static inline void res_7_a(CPU *cpu){ res_helper(&cpu->AF.hi, 7); }
+
+static inline void res_7_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    res_helper(&val, 7);
+    memory_write(cpu->p_memory, cpu->HL.val, val);
+}
+
+
+
+
+
 
 
 
@@ -1955,11 +2077,90 @@ static Opcode prefixed_opcodes[256]={
 [0x7E] = {"BIT 7,(HL)", 3, &bit_7_hl},
 [0x7F] = {"BIT 7,A", 2, &bit_7_a},
 
+// RES 0
+[0x80] = {"RES 0,B", 2, &res_0_b},
+[0x81] = {"RES 0,C", 2, &res_0_c},
+[0x82] = {"RES 0,D", 2, &res_0_d},
+[0x83] = {"RES 0,E", 2, &res_0_e},
+[0x84] = {"RES 0,H", 2, &res_0_h},
+[0x85] = {"RES 0,L", 2, &res_0_l},
+[0x86] = {"RES 0,(HL)", 3, &res_0_hl},
+[0x87] = {"RES 0,A", 2, &res_0_a},
+
+// RES 1
+[0x88] = {"RES 1,B", 2, &res_1_b},
+[0x89] = {"RES 1,C", 2, &res_1_c},
+[0x8A] = {"RES 1,D", 2, &res_1_d},
+[0x8B] = {"RES 1,E", 2, &res_1_e},
+[0x8C] = {"RES 1,H", 2, &res_1_h},
+[0x8D] = {"RES 1,L", 2, &res_1_l},
+[0x8E] = {"RES 1,(HL)", 3, &res_1_hl},
+[0x8F] = {"RES 1,A", 2, &res_1_a},
+
+// RES 2
+[0x90] = {"RES 2,B", 2, &res_2_b},
+[0x91] = {"RES 2,C", 2, &res_2_c},
+[0x92] = {"RES 2,D", 2, &res_2_d},
+[0x93] = {"RES 2,E", 2, &res_2_e},
+[0x94] = {"RES 2,H", 2, &res_2_h},
+[0x95] = {"RES 2,L", 2, &res_2_l},
+[0x96] = {"RES 2,(HL)", 3, &res_2_hl},
+[0x97] = {"RES 2,A", 2, &res_2_a},
+
+// RES 3
+[0x98] = {"RES 3,B", 2, &res_3_b},
+[0x99] = {"RES 3,C", 2, &res_3_c},
+[0x9A] = {"RES 3,D", 2, &res_3_d},
+[0x9B] = {"RES 3,E", 2, &res_3_e},
+[0x9C] = {"RES 3,H", 2, &res_3_h},
+[0x9D] = {"RES 3,L", 2, &res_3_l},
+[0x9E] = {"RES 3,(HL)", 3, &res_3_hl},
+[0x9F] = {"RES 3,A", 2, &res_3_a},
+
+// RES 4
+[0xA0] = {"RES 4,B", 2, &res_4_b},
+[0xA1] = {"RES 4,C", 2, &res_4_c},
+[0xA2] = {"RES 4,D", 2, &res_4_d},
+[0xA3] = {"RES 4,E", 2, &res_4_e},
+[0xA4] = {"RES 4,H", 2, &res_4_h},
+[0xA5] = {"RES 4,L", 2, &res_4_l},
+[0xA6] = {"RES 4,(HL)", 3, &res_4_hl},
+[0xA7] = {"RES 4,A", 2, &res_4_a},
+
+// RES 5
+[0xA8] = {"RES 5,B", 2, &res_5_b},
+[0xA9] = {"RES 5,C", 2, &res_5_c},
+[0xAA] = {"RES 5,D", 2, &res_5_d},
+[0xAB] = {"RES 5,E", 2, &res_5_e},
+[0xAC] = {"RES 5,H", 2, &res_5_h},
+[0xAD] = {"RES 5,L", 2, &res_5_l},
+[0xAE] = {"RES 5,(HL)", 3, &res_5_hl},
+[0xAF] = {"RES 5,A", 2, &res_5_a},
+
+// RES 6
+[0xB0] = {"RES 6,B", 2, &res_6_b},
+[0xB1] = {"RES 6,C", 2, &res_6_c},
+[0xB2] = {"RES 6,D", 2, &res_6_d},
+[0xB3] = {"RES 6,E", 2, &res_6_e},
+[0xB4] = {"RES 6,H", 2, &res_6_h},
+[0xB5] = {"RES 6,L", 2, &res_6_l},
+[0xB6] = {"RES 6,(HL)", 3, &res_6_hl},
+[0xB7] = {"RES 6,A", 2, &res_6_a},
+
+// RES 7
+[0xB8] = {"RES 7,B", 2, &res_7_b},
+[0xB9] = {"RES 7,C", 2, &res_7_c},
+[0xBA] = {"RES 7,D", 2, &res_7_d},
+[0xBB] = {"RES 7,E", 2, &res_7_e},
+[0xBC] = {"RES 7,H", 2, &res_7_h},
+[0xBD] = {"RES 7,L", 2, &res_7_l},
+[0xBE] = {"RES 7,(HL)", 3, &res_7_hl},
+[0xBF] = {"RES 7,A", 2, &res_7_a},
+
 };
 
 static inline void cb_helper(CPU *cpu){
     printf("PREFIXED OPCODE HANDELING\n");
-
     u8 micro_ins = get_next_8(cpu);
     Opcode prefixed_opcode = prefixed_opcodes[micro_ins];
 

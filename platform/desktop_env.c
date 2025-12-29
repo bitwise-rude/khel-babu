@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <errno.h>
 
-#define FILE_TO_LOAD "test_roms/10.gb"
+#define FILE_TO_LOAD "test_roms/ld_test.gb"
 
 /* Uses the OS to read a rom (.bin) file and return the contents */
 Cartridge load_cartridge() {
