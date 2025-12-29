@@ -1,12 +1,10 @@
-/*
-    CPU is an 8 bit 8080-like CPU
-
-*/
 #pragma once
 #include <stdlib.h>
 #include <stdint.h>
 #include "../memory/memory.h"
 #include <stdio.h>
+
+#define ITERATION 99999
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -50,8 +48,5 @@ typedef struct {
 
     void (*opcode_method)();
 }Opcode;
-
-
-
 
 void step_cpu(CPU *);

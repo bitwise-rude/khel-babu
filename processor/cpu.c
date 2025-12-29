@@ -1,4 +1,5 @@
 #include "cpu.h"
+#include "string.h"
 
 /* Helper Macros */
 #define low(a) (u8)(a & 0x00FF) 
@@ -8,8 +9,6 @@
 #define SUBTRACT 0x40
 #define HALF_CARRY 0x20
 #define CARRY 0x10
-
-#define DEBUG
 
 CPU init_cpu(Memory *p_mem){
     return (CPU) {
@@ -272,9 +271,7 @@ static inline void cp_helper(CPU *cpu, const u8 operand){
 }
 
 static inline void jr_helper(CPU *cpu){
-    s8 offset = (s8)get_next_8(cpu);
-    printf("\nOFFSET:%d\n",(int)offset);
-   
+    s8 offset = (s8)get_next_8(cpu);   
     cpu->PC.val += offset;
 }
 
@@ -1677,17 +1674,17 @@ static Opcode prefixed_opcodes[256]={
 };
 
 static inline void cb_helper(CPU *cpu){
-    printf("PREFIXED OPCODE HANDELING\n");
+    // printf("PREFIXED OPCODE HANDELING\n");
     u8 micro_ins = get_next_8(cpu);
     Opcode prefixed_opcode = prefixed_opcodes[micro_ins];
 
     if(prefixed_opcode.opcode_method != NULL){
-        printf("Executing Prefixed opcode %s", prefixed_opcode.name);
+        // printf("Executing Prefixed opcode %s", prefixed_opcode.name);
         prefixed_opcode.opcode_method(cpu);
         cpu->cycles += prefixed_opcode.cycles;
     }
     else{
-        printf("NOt implemnted opcode: %x\n",micro_ins);
+        // printf("NOt implemnted opcode: %x\n",micro_ins);
         exit(0);
     }
 }
@@ -1964,42 +1961,18 @@ static Opcode opcodes[256]= {
 
 // steps the CPU
 void step_cpu(CPU *cpu){
-    // debug
-        #ifdef DEBUG
-    FILE *fp = fopen("logging.txt","a");
-    fprintf(fp,"A:%.2x F:%.2x B:%.2x C:%.2x D:%.2x E:%.2x H:%.2x L:%.2x SP:%.4x PC:%.4x PCMEM:%.2x,%.2x,%.2x,%.2x\n",
-            cpu->AF.hi,
-            cpu-> AF.lo,
-            cpu-> BC.hi,
-            cpu->BC.lo,
-            cpu->DE.hi,
-            cpu->DE.lo,
-            cpu->HL.hi,
-            cpu->HL.lo,
-            cpu->SP.val,
-            cpu->PC.val,
-            memory_read_8(cpu->p_memory, cpu->PC.val),
-            memory_read_8(cpu->p_memory, cpu->PC.val+1),
-            memory_read_8(cpu->p_memory, cpu->PC.val+2),
-            memory_read_8(cpu->p_memory, cpu->PC.val+3)
-        );
-    
-    fclose(fp);
-    #endif
-
     u8 opcode = memory_read_8(cpu->p_memory, cpu->PC.val);
-    printf("\nOPCODE FETCHED IS:  %.2xH \n",opcode);
+    // printf("\nOPCODE FETCHED IS:  %.2xH \n",opcode);
 
     // next instructions
     cpu->PC.val += 1;
 
     // execute the instruction
     Opcode to_exec = opcodes[opcode];
-    if (to_exec.opcode_method != NULL) printf("EXECUTING THE INSTRUCTION %s\n",to_exec.name);
-    else {printf("NOT IMPLEMENTED\n"); exit(1);}
+    if (to_exec.opcode_method == NULL){printf("NOT IMPLEMENTED\n"); exit(1);}
+    // printf("EXECUTING THE INSTRUCTION %s\n",to_exec.name
     to_exec.opcode_method(cpu);
     cpu->cycles += to_exec.cycles;
-    printf("\n");
-
-    // logging 
+    // printf("\n");
 }
+

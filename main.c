@@ -41,11 +41,11 @@ int main(){
 	Memory memory = (Memory) {.p_cartidge = &cartridge};
 
 	CPU cpu = init_cpu(&memory);
-	for (int i = 0; i<=80000000; i++){
+	
+	for (int i = 0; i<=ITERATION; i++){
 		step_cpu(&cpu);
 	}
 
 	free(cartridge.rom);
-	
 }
 
