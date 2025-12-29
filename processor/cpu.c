@@ -379,6 +379,29 @@ static inline void jp_hl(CPU *cpu){
     cpu-> PC.val = cpu->HL.val;
 }
 
+static inline void jp_nz_a16(CPU *cpu){
+    u16 addr = get_next_16(cpu);
+
+    if (!flag_z(cpu)){
+        cpu->PC.val = addr;
+        cpu->cycles += 4;
+        return;
+    }
+    cpu->cycles += 3;
+}
+
+static inline void jp_nc_a16(CPU *cpu){
+    u16 addr = get_next_16(cpu);
+
+    if (!flag_c(cpu)){
+        cpu->PC.val = addr;
+        cpu->cycles += 4;
+        return;
+    }
+    cpu->cycles += 3;
+}
+
+
 static inline void jr_s8(CPU *cpu){
     jr_helper(cpu);
     cpu->cycles += 3;
@@ -491,6 +514,56 @@ static inline void add_hl_hl(CPU *cpu){
 
 static inline void add_hl_sp(CPU *cpu){
     add_hl_helper(cpu, cpu->SP.val);
+}
+
+static inline void daa(CPU *cpu){
+    u8 a = cpu->AF.hi;
+    u8 adjust = 0;
+    u8 carry = 0;
+
+    if (!flag_n(cpu)) {
+        // after addition
+        if (flag_h(cpu) || (a & 0x0F) > 9)
+            adjust |= 0x06;
+
+        if (flag_c(cpu) || a > 0x99) {
+            adjust |= 0x60;
+            carry = 1;
+        }
+
+        a += adjust;
+    } else {
+        // after subtraction
+        if (flag_h(cpu))
+            adjust |= 0x06;
+
+        if (flag_c(cpu))
+            adjust |= 0x60;
+
+        a -= adjust;
+    }
+
+    cpu->AF.hi = a;
+
+    if (a == 0)
+        set_flag(cpu, ZERO);
+    else
+        unset_flag(cpu, ZERO);
+
+    unset_flag(cpu, HALF_CARRY);
+
+    if (!flag_n(cpu)) {
+        if (carry)
+            set_flag(cpu, CARRY);
+        else
+            unset_flag(cpu, CARRY);
+    }
+}
+
+static inline void scf(CPU *cpu){
+    set_flag(cpu, CARRY);
+    unset_flag(cpu, SUBTRACT);
+    unset_flag(cpu, HALF_CARRY);
 }
 
 
@@ -2377,6 +2450,8 @@ static Opcode opcodes[256]= {
 
     [0xc3] = {"JP a16", 4,      &jp_a16},
     [0xe9] = {"JP HL", 1,   &jp_hl},
+    [0xc2] = {"JP NZ, a16", 0, &jp_nz_a16},
+    [0xd2] = {"JP NC, a16", 0, &jp_nc_a16},
     
     [0x20] = {"JR NZ, s8", 0, &jr_nz},
     [0x30] = {"JR NC, s8", 0, &jr_nc},
@@ -2537,6 +2612,8 @@ static Opcode opcodes[256]= {
     [0x8D] = {"ADc L", 1, &adc_l},
     [0x8E] = {"ADc M", 2, &adc_m},
     [0x8F] = {"ADc A", 1, &adc_a},
+    [0x27] = {"DAA", 1, &daa},
+    [0x37] = {"SCF", 1, &scf},
 
     [0x09] = {"ADD HL, BC", 2, &add_hl_bc},
     [0x19] = {"ADD HL, DE", 2, &add_hl_de},
