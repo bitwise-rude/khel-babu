@@ -1977,12 +1977,125 @@ static inline void res_7_hl(CPU *cpu){
 }
 
 
+//set
 
 
+static inline void setbit_helper(u8 *value, u8 bit){
+    *value |= (1 << bit);
+}
+
+static inline void set_0_b(CPU *cpu){ setbit_helper(&cpu->BC.hi, 0); }
+static inline void set_0_c(CPU *cpu){ setbit_helper(&cpu->BC.lo, 0); }
+static inline void set_0_d(CPU *cpu){ setbit_helper(&cpu->DE.hi, 0); }
+static inline void set_0_e(CPU *cpu){ setbit_helper(&cpu->DE.lo, 0); }
+static inline void set_0_h(CPU *cpu){ setbit_helper(&cpu->HL.hi, 0); }
+static inline void set_0_l(CPU *cpu){ setbit_helper(&cpu->HL.lo, 0); }
+static inline void set_0_a(CPU *cpu){ setbit_helper(&cpu->AF.hi, 0); }
+
+static inline void set_0_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    setbit_helper(&val, 0);
+    memory_write(cpu->p_memory, cpu->HL.val, val);
+}
+
+static inline void set_1_b(CPU *cpu){ setbit_helper(&cpu->BC.hi, 1); }
+static inline void set_1_c(CPU *cpu){ setbit_helper(&cpu->BC.lo, 1); }
+static inline void set_1_d(CPU *cpu){ setbit_helper(&cpu->DE.hi, 1); }
+static inline void set_1_e(CPU *cpu){ setbit_helper(&cpu->DE.lo, 1); }
+static inline void set_1_h(CPU *cpu){ setbit_helper(&cpu->HL.hi, 1); }
+static inline void set_1_l(CPU *cpu){ setbit_helper(&cpu->HL.lo, 1); }
+static inline void set_1_a(CPU *cpu){ setbit_helper(&cpu->AF.hi, 1); }
+
+static inline void set_1_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    setbit_helper(&val, 1);
+    memory_write(cpu->p_memory, cpu->HL.val, val);
+}
+
+static inline void set_2_b(CPU *cpu){ setbit_helper(&cpu->BC.hi, 2); }
+static inline void set_2_c(CPU *cpu){ setbit_helper(&cpu->BC.lo, 2); }
+static inline void set_2_d(CPU *cpu){ setbit_helper(&cpu->DE.hi, 2); }
+static inline void set_2_e(CPU *cpu){ setbit_helper(&cpu->DE.lo, 2); }
+static inline void set_2_h(CPU *cpu){ setbit_helper(&cpu->HL.hi, 2); }
+static inline void set_2_l(CPU *cpu){ setbit_helper(&cpu->HL.lo, 2); }
+static inline void set_2_a(CPU *cpu){ setbit_helper(&cpu->AF.hi, 2); }
+
+static inline void set_2_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    setbit_helper(&val, 2);
+    memory_write(cpu->p_memory, cpu->HL.val, val);
+}
 
 
+static inline void set_3_b(CPU *cpu){ setbit_helper(&cpu->BC.hi, 3); }
+static inline void set_3_c(CPU *cpu){ setbit_helper(&cpu->BC.lo, 3); }
+static inline void set_3_d(CPU *cpu){ setbit_helper(&cpu->DE.hi, 3); }
+static inline void set_3_e(CPU *cpu){ setbit_helper(&cpu->DE.lo, 3); }
+static inline void set_3_h(CPU *cpu){ setbit_helper(&cpu->HL.hi, 3); }
+static inline void set_3_l(CPU *cpu){ setbit_helper(&cpu->HL.lo, 3); }
+static inline void set_3_a(CPU *cpu){ setbit_helper(&cpu->AF.hi, 3); }
 
+static inline void set_3_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    setbit_helper(&val, 3);
+    memory_write(cpu->p_memory, cpu->HL.val, val);
+}
 
+static inline void set_4_b(CPU *cpu){ setbit_helper(&cpu->BC.hi, 4); }
+static inline void set_4_c(CPU *cpu){ setbit_helper(&cpu->BC.lo, 4); }
+static inline void set_4_d(CPU *cpu){ setbit_helper(&cpu->DE.hi, 4); }
+static inline void set_4_e(CPU *cpu){ setbit_helper(&cpu->DE.lo, 4); }
+static inline void set_4_h(CPU *cpu){ setbit_helper(&cpu->HL.hi, 4); }
+static inline void set_4_l(CPU *cpu){ setbit_helper(&cpu->HL.lo, 4); }
+static inline void set_4_a(CPU *cpu){ setbit_helper(&cpu->AF.hi, 4); }
+
+static inline void set_4_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    setbit_helper(&val, 4);
+    memory_write(cpu->p_memory, cpu->HL.val, val);
+}
+
+static inline void set_5_b(CPU *cpu){ setbit_helper(&cpu->BC.hi, 5); }
+static inline void set_5_c(CPU *cpu){ setbit_helper(&cpu->BC.lo, 5); }
+static inline void set_5_d(CPU *cpu){ setbit_helper(&cpu->DE.hi, 5); }
+static inline void set_5_e(CPU *cpu){ setbit_helper(&cpu->DE.lo, 5); }
+static inline void set_5_h(CPU *cpu){ setbit_helper(&cpu->HL.hi, 5); }
+static inline void set_5_l(CPU *cpu){ setbit_helper(&cpu->HL.lo, 5); }
+static inline void set_5_a(CPU *cpu){ setbit_helper(&cpu->AF.hi, 5); }
+
+static inline void set_5_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    setbit_helper(&val, 5);
+    memory_write(cpu->p_memory, cpu->HL.val, val);
+}
+
+static inline void set_6_b(CPU *cpu){ setbit_helper(&cpu->BC.hi, 6); }
+static inline void set_6_c(CPU *cpu){ setbit_helper(&cpu->BC.lo, 6); }
+static inline void set_6_d(CPU *cpu){ setbit_helper(&cpu->DE.hi, 6); }
+static inline void set_6_e(CPU *cpu){ setbit_helper(&cpu->DE.lo, 6); }
+static inline void set_6_h(CPU *cpu){ setbit_helper(&cpu->HL.hi, 6); }
+static inline void set_6_l(CPU *cpu){ setbit_helper(&cpu->HL.lo, 6); }
+static inline void set_6_a(CPU *cpu){ setbit_helper(&cpu->AF.hi, 6); }
+
+static inline void set_6_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    setbit_helper(&val, 6);
+    memory_write(cpu->p_memory, cpu->HL.val, val);
+}
+
+static inline void set_7_b(CPU *cpu){ setbit_helper(&cpu->BC.hi, 7); }
+static inline void set_7_c(CPU *cpu){ setbit_helper(&cpu->BC.lo, 7); }
+static inline void set_7_d(CPU *cpu){ setbit_helper(&cpu->DE.hi, 7); }
+static inline void set_7_e(CPU *cpu){ setbit_helper(&cpu->DE.lo, 7); }
+static inline void set_7_h(CPU *cpu){ setbit_helper(&cpu->HL.hi, 7); }
+static inline void set_7_l(CPU *cpu){ setbit_helper(&cpu->HL.lo, 7); }
+static inline void set_7_a(CPU *cpu){ setbit_helper(&cpu->AF.hi, 7); }
+
+static inline void set_7_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    setbit_helper(&val, 7);
+    memory_write(cpu->p_memory, cpu->HL.val, val);
+}
 
 
 static Opcode prefixed_opcodes[256]={
@@ -2156,6 +2269,87 @@ static Opcode prefixed_opcodes[256]={
 [0xBD] = {"RES 7,L", 2, &res_7_l},
 [0xBE] = {"RES 7,(HL)", 3, &res_7_hl},
 [0xBF] = {"RES 7,A", 2, &res_7_a},
+
+// SET 0
+[0xC0] = {"SET 0,B", 2, &set_0_b},
+[0xC1] = {"SET 0,C", 2, &set_0_c},
+[0xC2] = {"SET 0,D", 2, &set_0_d},
+[0xC3] = {"SET 0,E", 2, &set_0_e},
+[0xC4] = {"SET 0,H", 2, &set_0_h},
+[0xC5] = {"SET 0,L", 2, &set_0_l},
+[0xC6] = {"SET 0,(HL)", 3, &set_0_hl},
+[0xC7] = {"SET 0,A", 2, &set_0_a},
+
+// SET 1
+[0xC8] = {"SET 1,B", 2, &set_1_b},
+[0xC9] = {"SET 1,C", 2, &set_1_c},
+[0xCA] = {"SET 1,D", 2, &set_1_d},
+[0xCB] = {"SET 1,E", 2, &set_1_e},
+[0xCC] = {"SET 1,H", 2, &set_1_h},
+[0xCD] = {"SET 1,L", 2, &set_1_l},
+[0xCE] = {"SET 1,(HL)", 3, &set_1_hl},
+[0xCF] = {"SET 1,A", 2, &set_1_a},
+
+// SET 2
+[0xD0] = {"SET 2,B", 2, &set_2_b},
+[0xD1] = {"SET 2,C", 2, &set_2_c},
+[0xD2] = {"SET 2,D", 2, &set_2_d},
+[0xD3] = {"SET 2,E", 2, &set_2_e},
+[0xD4] = {"SET 2,H", 2, &set_2_h},
+[0xD5] = {"SET 2,L", 2, &set_2_l},
+[0xD6] = {"SET 2,(HL)", 3, &set_2_hl},
+[0xD7] = {"SET 2,A", 2, &set_2_a},
+
+// SET 3
+[0xD8] = {"SET 3,B", 2, &set_3_b},
+[0xD9] = {"SET 3,C", 2, &set_3_c},
+[0xDA] = {"SET 3,D", 2, &set_3_d},
+[0xDB] = {"SET 3,E", 2, &set_3_e},
+[0xDC] = {"SET 3,H", 2, &set_3_h},
+[0xDD] = {"SET 3,L", 2, &set_3_l},
+[0xDE] = {"SET 3,(HL)", 3, &set_3_hl},
+[0xDF] = {"SET 3,A", 2, &set_3_a},
+
+// SET 4
+[0xE0] = {"SET 4,B", 2, &set_4_b},
+[0xE1] = {"SET 4,C", 2, &set_4_c},
+[0xE2] = {"SET 4,D", 2, &set_4_d},
+[0xE3] = {"SET 4,E", 2, &set_4_e},
+[0xE4] = {"SET 4,H", 2, &set_4_h},
+[0xE5] = {"SET 4,L", 2, &set_4_l},
+[0xE6] = {"SET 4,(HL)", 3, &set_4_hl},
+[0xE7] = {"SET 4,A", 2, &set_4_a},
+
+// SET 5
+[0xE8] = {"SET 5,B", 2, &set_5_b},
+[0xE9] = {"SET 5,C", 2, &set_5_c},
+[0xEA] = {"SET 5,D", 2, &set_5_d},
+[0xEB] = {"SET 5,E", 2, &set_5_e},
+[0xEC] = {"SET 5,H", 2, &set_5_h},
+[0xED] = {"SET 5,L", 2, &set_5_l},
+[0xEE] = {"SET 5,(HL)", 3, &set_5_hl},
+[0xEF] = {"SET 5,A", 2, &set_5_a},
+
+// SET 6
+[0xF0] = {"SET 6,B", 2, &set_6_b},
+[0xF1] = {"SET 6,C", 2, &set_6_c},
+[0xF2] = {"SET 6,D", 2, &set_6_d},
+[0xF3] = {"SET 6,E", 2, &set_6_e},
+[0xF4] = {"SET 6,H", 2, &set_6_h},
+[0xF5] = {"SET 6,L", 2, &set_6_l},
+[0xF6] = {"SET 6,(HL)", 3, &set_6_hl},
+[0xF7] = {"SET 6,A", 2, &set_6_a},
+
+// SET 7
+[0xF8] = {"SET 7,B", 2, &set_7_b},
+[0xF9] = {"SET 7,C", 2, &set_7_c},
+[0xFA] = {"SET 7,D", 2, &set_7_d},
+[0xFB] = {"SET 7,E", 2, &set_7_e},
+[0xFC] = {"SET 7,H", 2, &set_7_h},
+[0xFD] = {"SET 7,L", 2, &set_7_l},
+[0xFE] = {"SET 7,(HL)", 3, &set_7_hl},
+[0xFF] = {"SET 7,A", 2, &set_7_a},
+
 
 };
 
