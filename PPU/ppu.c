@@ -28,13 +28,39 @@ static inline void increment_ly(PPU *ppu){
     set_ly(ppu, ly);
 } 
 
-static void test_lines(PPU *ppu){
+static void test_lines(PPU *ppu)
+{
     u8 y = get_ly(ppu);
 
-    for(int x = 0; x < 160;x++){
-        ppu->frame_buffer[y][x] = (y / 16) & 3;
+    // Only draw visible area
+    if (y >= 144)
+        return;
+
+    u16 tile_addr = 0x8000; // tile 0 (unsigned mode)
+
+    // Fetch the two bytes for THIS tile row
+    u8 row = y % 8;
+
+    u8 byte0 = memory_read_8(ppu->p_memory, tile_addr + row * 2);
+    u8 byte1 = memory_read_8(ppu->p_memory, tile_addr + row * 2 + 1);
+
+    for (int x = 0; x < 160; x++) {
+
+        // Repeat tile across screen
+        u8 tile_x = x % 8;
+
+        // Game Boy pixels are MSB first
+        u8 bit = 7 - tile_x;
+
+        u8 lo = (byte0 >> bit) & 1;
+        u8 hi = (byte1 >> bit) & 1;
+
+        u8 color = (hi << 1) | lo;
+
+        ppu->frame_buffer[y][x] = color;
     }
 }
+
 
 static void dump_test(PPU *ppu){
     FILE *fp = fopen("test_dump.pgm","wb");
@@ -83,7 +109,7 @@ void step_ppu(PPU *ppu,u8 cpu_cycles){
                         // test 
                         dump_test(ppu);
                         request_interrupt(ppu->ih,INT_VBLANK);
-                        exit(0);
+                        // exit(0);
                     }
                     else
                     {

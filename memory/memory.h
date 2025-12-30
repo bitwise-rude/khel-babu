@@ -88,6 +88,16 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
      
         return &p_mem -> IO[addr - 0xFF00];
     }
+    else if (addr == 0xff41){
+        // not implemented STAT : LCD CONTROL
+     
+        return &p_mem -> IO[addr - 0xFF00];
+    }
+    else if (addr == 0xff4b || addr == 0xff4a || addr == 0xff06 || addr == 0xff48 || addr == 0xff49){
+        // idk what this is 
+     
+        return &p_mem -> IO[addr - 0xFF00];
+    }
 
     else if (addr == 0xFF42 || addr == 0xFF43){
         // scrolling not implemented
