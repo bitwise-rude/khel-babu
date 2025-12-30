@@ -43,8 +43,8 @@ int main(){
 	Memory memory = (Memory) {.p_cartidge = &cartridge};
 
 	CPU cpu = init_cpu(&memory);
-	PPU ppu = init_ppu(&memory);
 	InterruptHandler interrupt_handler = make_interrupt_handler(&cpu);
+	PPU ppu = init_ppu(&memory, &interrupt_handler);
 	
 	for (int i = 0; i<=ITERATION; i++){
 		u8 cycles_taken = step_cpu(&cpu);

@@ -9,10 +9,11 @@
 #define TOTAL_LINES 154 
 
 
-PPU init_ppu(Memory *mem){
-    return (PPU){
+PPU init_ppu(Memory *mem, InterruptHandler *ih){
+    return (PPU) {
         .p_memory = mem,
         .mode = 2,
+        .ih = ih,
     };
 }
 
@@ -61,7 +62,7 @@ void step_ppu(PPU *ppu,u8 cpu_cycles){
                     if(ly >= 144)
                     {
                         ppu->mode = 1; 
-                        // TODO interrupt
+                        request_interrupt(ppu->ih,INT_VBLANK);
                     }
                     else
                     {
@@ -79,6 +80,8 @@ void step_ppu(PPU *ppu,u8 cpu_cycles){
                     increment_ly(ppu);
 
                     if (get_ly(ppu) == 0){
+                        // reset framebuffer
+                        memset(ppu->frame_buffer,0,sizeof(ppu->frame_buffer));
                         ppu->mode =2 ;
                         return;
                     }
