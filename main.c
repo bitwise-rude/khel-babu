@@ -44,16 +44,11 @@ int main(){
 	
 	for (int i = 0; i<=ITERATION; i++){
 		step_cpu(&cpu);
+		// printf("%d\n",i);
 	}
 
 	free(cartridge.rom);
 
-	#ifdef LOG
-	 if (cpu.log_counter > 0){
-            FILE *fp = fopen("logging.txt","a");
-		    fputs(cpu.logs,fp);
-		    fclose(fp);
-        }
-	#endif
+
 }
 

@@ -26,6 +26,10 @@ CPU init_cpu(Memory *p_mem){
         .HL.hi = 	0x01,
         .HL.lo = 	0x4D,
         .SP.val = 	0xFFFE,
+        #ifdef LOG
+        .logs = {0},
+        .log_pos = '\0',
+        #endif
     };
 }
 
@@ -1689,9 +1693,8 @@ static inline void cb_helper(CPU *cpu){
     }
     else{
         
-        #ifdef DEBUG
-            printf("[NOT IMPLEMENTED PREFIXED OPCODE: %x]\n",micro_ins);
-        #endif
+        
+        printf("[NOT IMPLEMENTED PREFIXED OPCODE: %x]\n",micro_ins);
         exit(0);
     }
 }
@@ -1970,36 +1973,39 @@ static Opcode opcodes[256]= {
 void step_cpu(CPU *cpu){
 
     // logging
-        #ifdef LOG
-        char temp[75]={0};
+    #ifdef LOG
+    char temp[128];
 
-        sprintf(temp,"A:%.2x F:%.2x B:%.2x C:%.2x D:%.2x E:%.2x H:%.2x L:%.2x SP:%.4x PC:%.4x PCMEM:%.2x,%.2x,%.2x,%.2x\n",
-                cpu->AF.hi,
-                cpu-> AF.lo,
-                cpu-> BC.hi,
-                cpu->BC.lo,
-                cpu->DE.hi,
-                cpu->DE.lo,
-                cpu->HL.hi,
-                cpu->HL.lo,
-                cpu->SP.val,
-                cpu->PC.val,
-                memory_read_8(cpu->p_memory, cpu->PC.val),
-                memory_read_8(cpu->p_memory, cpu->PC.val+1),
-                memory_read_8(cpu->p_memory, cpu->PC.val+2),
-                memory_read_8(cpu->p_memory, cpu->PC.val+3)
-            );
+    int len = snprintf(
+        temp, sizeof(temp),
+        "A:%02X F:%02X B:%02X C:%02X D:%02X E:%02X H:%02X L:%02X "
+        "SP:%04X PC:%04X PCMEM:%02X,%02X,%02X,%02X\n",
+        cpu->AF.hi,
+        cpu->AF.lo,
+        cpu->BC.hi,
+        cpu->BC.lo,
+        cpu->DE.hi,
+        cpu->DE.lo,
+        cpu->HL.hi,
+        cpu->HL.lo,
+        cpu->SP.val,
+        cpu->PC.val,
+        memory_read_8(cpu->p_memory, cpu->PC.val),
+        memory_read_8(cpu->p_memory, cpu->PC.val + 1),
+        memory_read_8(cpu->p_memory, cpu->PC.val + 2),
+        memory_read_8(cpu->p_memory, cpu->PC.val + 3)
+    );
+    
+    if (cpu->log_pos + len >= LOG_BUFFER_SIZE) {
+        FILE *fp = fopen("logging.txt", "a");
+        fwrite(cpu->logs, 1, cpu->log_pos, fp);
+        fclose(fp);
+        cpu->log_pos = 0;
+    }
 
-        strcat(cpu->logs,temp);
-        cpu->log_counter ++;
+    memcpy(cpu->logs + cpu->log_pos, temp, len);
+    cpu->log_pos += len;
 
-        if (cpu -> log_counter >= 9900){
-            FILE *fp = fopen("logging.txt","a");
-		    fputs(cpu->logs,fp);
-		    fclose(fp);
-            strcpy(cpu->logs, "");
-            cpu->log_counter = 0;
-        }
     #endif
 
     u8 opcode = memory_read_8(cpu->p_memory, cpu->PC.val);

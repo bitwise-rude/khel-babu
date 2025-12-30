@@ -37,8 +37,8 @@ typedef struct
 
     // logger
     #ifdef LOG
-        char logs[10000*75];
-        size_t log_counter;
+        char logs[LOG_BUFFER_SIZE];
+        size_t log_pos;
     #endif
 
 }CPU;
