@@ -47,5 +47,12 @@ int main(){
 	}
 
 	free(cartridge.rom);
+
+	#ifdef LOG
+		FILE *fp = fopen("logging.txt","w");
+		fputs(cpu.logs,fp);
+		fclose(fp);
+		free(cpu.logs);
+	#endif
 }
 

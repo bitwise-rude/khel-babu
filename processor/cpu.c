@@ -1,6 +1,7 @@
 #include "cpu.h"
 #include "string.h"
 #include "../platform/platform.h"
+#include "stdlib.h"
 
 
 /* Helper Macros */
@@ -13,6 +14,10 @@
 #define CARRY 0x10
 
 CPU init_cpu(Memory *p_mem){
+    #ifdef LOG
+        char *ptr = (char *) malloc(ITERATION*75);
+    #endif
+
     return (CPU) {
         .PC.val = 0x100,
         .p_memory = p_mem,
@@ -24,7 +29,10 @@ CPU init_cpu(Memory *p_mem){
         .DE.lo =	0xD8,
         .HL.hi = 	0x01,
         .HL.lo = 	0x4D,
-        .SP.val = 	0xFFFE
+        .SP.val = 	0xFFFE,
+        #ifdef LOG
+        .logs = ptr,
+        #endif
     };
 }
 
@@ -1689,7 +1697,7 @@ static inline void cb_helper(CPU *cpu){
     else{
         
         #ifdef DEBUG
-            printf("[NOT IMPLEMENTED PREFIXED OPCODE: %x\n]",micro_ins);
+            printf("[NOT IMPLEMENTED PREFIXED OPCODE: %x]\n",micro_ins);
         #endif
         exit(0);
     }
@@ -1967,6 +1975,31 @@ static Opcode opcodes[256]= {
 
 // steps the CPU
 void step_cpu(CPU *cpu){
+
+    // logging
+        #ifdef LOG
+        char temp[75]={0};
+
+        sprintf(temp,"A:%.2x F:%.2x B:%.2x C:%.2x D:%.2x E:%.2x H:%.2x L:%.2x SP:%.4x PC:%.4x PCMEM:%.2x,%.2x,%.2x,%.2x\n",
+                cpu->AF.hi,
+                cpu-> AF.lo,
+                cpu-> BC.hi,
+                cpu->BC.lo,
+                cpu->DE.hi,
+                cpu->DE.lo,
+                cpu->HL.hi,
+                cpu->HL.lo,
+                cpu->SP.val,
+                cpu->PC.val,
+                memory_read_8(cpu->p_memory, cpu->PC.val),
+                memory_read_8(cpu->p_memory, cpu->PC.val+1),
+                memory_read_8(cpu->p_memory, cpu->PC.val+2),
+                memory_read_8(cpu->p_memory, cpu->PC.val+3)
+            );
+            
+        strcat(cpu->logs,temp);
+    #endif
+
     u8 opcode = memory_read_8(cpu->p_memory, cpu->PC.val);
 
     // next instructions
@@ -1977,8 +2010,9 @@ void step_cpu(CPU *cpu){
     if (to_exec.opcode_method == NULL){printf("NOT IMPLEMENTED\n"); exit(1);}
 
     #ifdef DEBUG
-        printf("[EXECUTING THE INSTRUCTION: %s\n]n]",to_exec.name);
+        printf("[EXECUTING THE INSTRUCTION: %s]\n",to_exec.name);
     #endif
+
     to_exec.opcode_method(cpu);
     cpu->cycles += to_exec.cycles;
 }

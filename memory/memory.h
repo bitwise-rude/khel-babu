@@ -41,7 +41,7 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
     else if (addr >= 0xC000 && addr <= 0xDFFF){
         // WRAM 
         #ifdef DEBUG
-            printf(" FROM WRAM AT: %x\n]",addr);
+            printf(" FROM WRAM AT: %x]\n",addr);
         #endif
         return &p_mem -> WRAM[addr - 0xC000];
     }
@@ -113,7 +113,7 @@ static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
     #ifdef DEBUG
         printf("READING ");
     #endif
-    
+
     if (addr == 0xFF44){
         return 0x90; // TODO: change this just for experiment
     }
@@ -129,8 +129,6 @@ static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
 
 
 static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
-
-    printf("WRITING ");
     u8 *add =  get_address(p_mem,addr);
 
     

@@ -4,7 +4,6 @@
 #include "../memory/memory.h"
 #include <stdio.h>
 
-#define ITERATION 99999
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -35,6 +34,11 @@ typedef struct
 
     //interrupts
     u8 IME;
+
+    // logger
+    #ifdef LOG
+        char *logs;
+    #endif
 
 }CPU;
 
