@@ -48,7 +48,6 @@ Cartridge load_cartridge() {
 		return cartridge;
 	}
 
-
 	size_t elements_read = fread(pcartidge, 1, size, fp);
 	fclose(fp);
 

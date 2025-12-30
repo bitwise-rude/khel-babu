@@ -103,7 +103,7 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
     }
 
     else{
-        printf("NOT IMPLEMENTED\n");
+        printf("NOT IMPLEMENTED MEMORY LOCATION\n");
         return NULL;
     }
 

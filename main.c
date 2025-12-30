@@ -37,7 +37,7 @@ int main(){
 
 	verify_cartridge_header(cartridge.rom);
 
-	// make memory out of cartidge
+	// make memory from cartidge
 	Memory memory = (Memory) {.p_cartidge = &cartridge};
 
 	CPU cpu = init_cpu(&memory);
