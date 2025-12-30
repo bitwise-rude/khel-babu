@@ -1970,7 +1970,7 @@ static Opcode opcodes[256]= {
 
 
 // steps the CPU
-void step_cpu(CPU *cpu){
+u8 step_cpu(CPU *cpu){
 
     // logging
     #ifdef LOG
@@ -2008,6 +2008,7 @@ void step_cpu(CPU *cpu){
 
     #endif
 
+    size_t prev_cycles = cpu->cycles;
     u8 opcode = memory_read_8(cpu->p_memory, cpu->PC.val);
     
 
@@ -2024,5 +2025,7 @@ void step_cpu(CPU *cpu){
 
     to_exec.opcode_method(cpu);
     cpu->cycles += to_exec.cycles;
+
+    return (u8) (cpu->cycles - prev_cycles);
 }
 

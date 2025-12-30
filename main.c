@@ -7,6 +7,7 @@
 #include "platform/platform.h"
 #include "processor/cpu.h"
 #include "memory/memory.h"
+#include "PPU/ppu.h"
 
 // TODO: perform checksums and switchable banks
 void verify_cartridge_header(const u8 *p_cartridge){
@@ -41,10 +42,11 @@ int main(){
 	Memory memory = (Memory) {.p_cartidge = &cartridge};
 
 	CPU cpu = init_cpu(&memory);
+	PPU ppu = init_ppu(&memory);
 	
 	for (int i = 0; i<=ITERATION; i++){
-		step_cpu(&cpu);
-		// printf("%d\n",i);
+		u8 cycles_taken = step_cpu(&cpu);
+		step_ppu(&ppu,cycles_taken);
 	}
 
 	free(cartridge.rom);

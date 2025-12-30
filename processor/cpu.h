@@ -54,4 +54,4 @@ typedef struct {
     void (*opcode_method)();
 }Opcode;
 
-void step_cpu(CPU *);
+u8 step_cpu(CPU *);
