@@ -54,7 +54,7 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
     else if (addr== 0xff07){
         // some timer shit 
 
-        printf("TIMER STATE IS NOT IMPLEMENTED YET");
+        printf("TIMER STATE IS NOT IMPLEMENTED YET\n");
         return &p_mem -> IO[addr - 0xFF00];
     }
     else if (addr== 0xff0f){
@@ -69,17 +69,17 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
     }
     else if (addr== 0xff26){
         // audio shit 
-        printf("Audio  IS NOT IMPLEMENTED YET");
+        printf("Audio  IS NOT IMPLEMENTED YET\n");
         return &p_mem -> IO[addr - 0xFF00];
     }
     else if (addr== 0xff25){
         // audio sound panning shit 
-        printf("Audio  IS NOT IMPLEMENTED YET");
+        printf("Audio  IS NOT IMPLEMENTED YET\n");
         return &p_mem -> IO[addr - 0xFF00];
     }
     else if (addr== 0xff24){
         // audio master volume shit 
-        printf("Audio  IS NOT IMPLEMENTED YET");
+        printf("Audio  IS NOT IMPLEMENTED YET\n");
         return &p_mem -> IO[addr - 0xFF00];
     }
 
@@ -137,7 +137,7 @@ static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
         exit(0);
     }
     #ifdef DEBUG
-    printf("WRITING  AT: %x and Value: %x\n",addr,data);
+        printf("WRITING  AT: %x and Value: %x\n",addr,data);
     #endif
     *add = data;
    

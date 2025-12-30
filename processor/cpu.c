@@ -14,10 +14,6 @@
 #define CARRY 0x10
 
 CPU init_cpu(Memory *p_mem){
-    #ifdef LOG
-        char *ptr = (char *) malloc(ITERATION*75);
-    #endif
-
     return (CPU) {
         .PC.val = 0x100,
         .p_memory = p_mem,
@@ -30,9 +26,6 @@ CPU init_cpu(Memory *p_mem){
         .HL.hi = 	0x01,
         .HL.lo = 	0x4D,
         .SP.val = 	0xFFFE,
-        #ifdef LOG
-        .logs = ptr,
-        #endif
     };
 }
 
@@ -1996,11 +1989,21 @@ void step_cpu(CPU *cpu){
                 memory_read_8(cpu->p_memory, cpu->PC.val+2),
                 memory_read_8(cpu->p_memory, cpu->PC.val+3)
             );
-            
+
         strcat(cpu->logs,temp);
+        cpu->log_counter ++;
+
+        if (cpu -> log_counter >= 9900){
+            FILE *fp = fopen("logging.txt","a");
+		    fputs(cpu->logs,fp);
+		    fclose(fp);
+            strcpy(cpu->logs, "");
+            cpu->log_counter = 0;
+        }
     #endif
 
     u8 opcode = memory_read_8(cpu->p_memory, cpu->PC.val);
+    
 
     // next instructions
     cpu->PC.val += 1;

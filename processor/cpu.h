@@ -37,7 +37,8 @@ typedef struct
 
     // logger
     #ifdef LOG
-        char *logs;
+        char logs[10000*75];
+        size_t log_counter;
     #endif
 
 }CPU;

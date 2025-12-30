@@ -49,10 +49,11 @@ int main(){
 	free(cartridge.rom);
 
 	#ifdef LOG
-		FILE *fp = fopen("logging.txt","w");
-		fputs(cpu.logs,fp);
-		fclose(fp);
-		free(cpu.logs);
+	 if (cpu.log_counter > 0){
+            FILE *fp = fopen("logging.txt","a");
+		    fputs(cpu.logs,fp);
+		    fclose(fp);
+        }
 	#endif
 }
 
