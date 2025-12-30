@@ -34,6 +34,7 @@ typedef struct
 
     //interrupts
     u8 IME;
+    u8 schedule_ei;
 
     // logger
     #ifdef LOG

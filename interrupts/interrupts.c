@@ -7,6 +7,11 @@ InterruptHandler make_interrupt_handler(CPU *cpu){
 }
 
 void request_interrupt(InterruptHandler *ih, INT type){
+    #ifdef DEBUG
+        printf("[INTERRUPT REQUESTED %d]", type);
+        int i;
+        scanf("%d",&i);
+    #endif
     u8 IF = ih->cpu->p_memory->IO[0x0F];
     IF |= (1 << type); 
     ih->cpu->p_memory->IO[0x0F] = IF;   
@@ -30,6 +35,10 @@ void process_interrupts(InterruptHandler *ih) {
 
             cpu->IME = 0;                  
             cpu->p_memory->IO[0x0F] &= ~(1 << bit); 
+
+            #ifndef DEBUG
+                printf("[INTERRUPT OCCURED  %d]\n", bit);
+            #endif
 
             // push Program counter
             push(cpu, (cpu->PC.val >> 8) & 0xFF);

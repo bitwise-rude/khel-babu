@@ -26,6 +26,7 @@ CPU init_cpu(Memory *p_mem){
         .HL.hi = 	0x01,
         .HL.lo = 	0x4D,
         .SP.val = 	0xFFFE,
+        .schedule_ei = 0,
         #ifdef LOG
         .logs = {0},
         .log_pos = '\0',
@@ -1078,6 +1079,8 @@ static inline void setbit_helper(u8 *value, u8 bit){
     *value |= (1 << bit);
 }
 
+static inline void ei(CPU *cpu){cpu->schedule_ei=2;}
+
 /* Opcode Functions Similar to Non prefixed ones */
 static inline void srl_b(CPU *cpu){ srl_helper(cpu, &cpu->BC.hi);}
 static inline void srl_c(CPU *cpu){ srl_helper(cpu, &cpu->BC.lo);}
@@ -1699,6 +1702,15 @@ static inline void cb_helper(CPU *cpu){
     }
 }
 
+// misc instructions
+static inline void cpl(CPU *cpu) { cpu->AF.hi = ~cpu->AF.hi;}
+static inline void ccf(CPU *cpu)
+ {  if (flag_c(cpu) == 1)
+        unset_flag(cpu,CARRY);
+    else 
+        set_flag(cpu, CARRY);
+}
+
 static Opcode opcodes[256]= {
     [0xCB] = {"CB Prefixed", 0, &cb_helper},
 
@@ -1965,7 +1977,12 @@ static Opcode opcodes[256]= {
     [0xf5] = {"PUSH AF",4, &push_af},
 
     [0x0f] = {"RRCA", 1, &rrca},
-    [0x1f] = {"RRA", 1 , &rra},  
+    [0x1f] = {"RRA", 1 , &rra}, 
+    
+    [0xfb] = {"EI", 1, &ei},
+
+    [0x2f] = {"CPL", 1, &cpl},
+    [0x3f] = {"CCF", 1, &ccf}
 };
 
 
@@ -2017,7 +2034,7 @@ u8 step_cpu(CPU *cpu){
 
     // execute the instruction
     Opcode to_exec = opcodes[opcode];
-    if (to_exec.opcode_method == NULL){printf("NOT IMPLEMENTED\n"); exit(1);}
+    if (to_exec.opcode_method == NULL){printf("NOT IMPLEMENTED %x\n",opcode); exit(1);}
 
     #ifdef DEBUG
         printf("[EXECUTING THE INSTRUCTION: %s]\n",to_exec.name);
@@ -2025,6 +2042,13 @@ u8 step_cpu(CPU *cpu){
 
     to_exec.opcode_method(cpu);
     cpu->cycles += to_exec.cycles;
+
+    // scheduled interrupt
+    if (cpu->schedule_ei != 0){
+        cpu->schedule_ei --;
+        if(cpu->schedule_ei == 0) cpu->IME = 1;
+    }
+        
 
     return (u8) (cpu->cycles - prev_cycles);
 }

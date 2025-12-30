@@ -3,6 +3,7 @@
 */
 #pragma once
 
+#include "../platform/platform.h"
 #include "../processor/cpu.h"
 
 

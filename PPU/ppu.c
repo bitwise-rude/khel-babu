@@ -32,24 +32,17 @@ static void test_lines(PPU *ppu)
 {
     u8 y = get_ly(ppu);
 
-    // Only draw visible area
-    if (y >= 144)
-        return;
+    u16 tile_addr = 0x8000; 
 
-    u16 tile_addr = 0x8000; // tile 0 (unsigned mode)
-
-    // Fetch the two bytes for THIS tile row
     u8 row = y % 8;
 
     u8 byte0 = memory_read_8(ppu->p_memory, tile_addr + row * 2);
     u8 byte1 = memory_read_8(ppu->p_memory, tile_addr + row * 2 + 1);
 
-    for (int x = 0; x < 160; x++) {
 
-        // Repeat tile across screen
+    for (int x = 0; x < 160; x++) {
         u8 tile_x = x % 8;
 
-        // Game Boy pixels are MSB first
         u8 bit = 7 - tile_x;
 
         u8 lo = (byte0 >> bit) & 1;
@@ -109,7 +102,6 @@ void step_ppu(PPU *ppu,u8 cpu_cycles){
                         // test 
                         dump_test(ppu);
                         request_interrupt(ppu->ih,INT_VBLANK);
-                        // exit(0);
                     }
                     else
                     {

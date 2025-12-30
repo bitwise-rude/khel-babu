@@ -27,7 +27,7 @@ typedef struct
 static inline u8 *get_address(Memory *p_mem, const u16 addr){
     if (addr<= 0x7FFF){
         // Cartridge Rom
-        #ifdef DEUBG
+        #ifdef DEBUG
             printf(" FROM CARTRIDGE ROM AT: %.4xH\n]",addr);
         #endif
         return &p_mem->p_cartidge->rom[addr];
@@ -93,7 +93,7 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
      
         return &p_mem -> IO[addr - 0xFF00];
     }
-    else if (addr == 0xff4b || addr == 0xff4a || addr == 0xff06 || addr == 0xff48 || addr == 0xff49){
+    else if (addr == 0xff4b || addr == 0xff4a || addr == 0xff06 || addr == 0xff48 || addr == 0xff49 || addr == 0xff44){
         // idk what this is 
      
         return &p_mem -> IO[addr - 0xFF00];
@@ -125,7 +125,9 @@ static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
     #endif
 
     if (addr == 0xFF44){
+        #ifdef LOG
         return 0x90; // TODO: change this just for experiment
+        #endif
     }
    
     u8 *add =  get_address(p_mem,addr);
