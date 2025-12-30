@@ -1,5 +1,7 @@
 #include "cpu.h"
 #include "string.h"
+#include "../platform/platform.h"
+
 
 /* Helper Macros */
 #define low(a) (u8)(a & 0x00FF) 
@@ -1674,17 +1676,21 @@ static Opcode prefixed_opcodes[256]={
 };
 
 static inline void cb_helper(CPU *cpu){
-    // printf("PREFIXED OPCODE HANDELING\n");
     u8 micro_ins = get_next_8(cpu);
     Opcode prefixed_opcode = prefixed_opcodes[micro_ins];
 
     if(prefixed_opcode.opcode_method != NULL){
-        // printf("Executing Prefixed opcode %s", prefixed_opcode.name);
+        #ifdef DEBUG
+            printf("[Executing Prefixed opcode: %s]\n", prefixed_opcode.name);
+        #endif
         prefixed_opcode.opcode_method(cpu);
         cpu->cycles += prefixed_opcode.cycles;
     }
     else{
-        // printf("NOt implemnted opcode: %x\n",micro_ins);
+        
+        #ifdef DEBUG
+            printf("[NOT IMPLEMENTED PREFIXED OPCODE: %x\n]",micro_ins);
+        #endif
         exit(0);
     }
 }
@@ -1962,7 +1968,6 @@ static Opcode opcodes[256]= {
 // steps the CPU
 void step_cpu(CPU *cpu){
     u8 opcode = memory_read_8(cpu->p_memory, cpu->PC.val);
-    // printf("\nOPCODE FETCHED IS:  %.2xH \n",opcode);
 
     // next instructions
     cpu->PC.val += 1;
@@ -1970,9 +1975,11 @@ void step_cpu(CPU *cpu){
     // execute the instruction
     Opcode to_exec = opcodes[opcode];
     if (to_exec.opcode_method == NULL){printf("NOT IMPLEMENTED\n"); exit(1);}
-    // printf("EXECUTING THE INSTRUCTION %s\n",to_exec.name
+
+    #ifdef DEBUG
+        printf("[EXECUTING THE INSTRUCTION: %s\n]n]",to_exec.name);
+    #endif
     to_exec.opcode_method(cpu);
     cpu->cycles += to_exec.cycles;
-    // printf("\n");
 }
 

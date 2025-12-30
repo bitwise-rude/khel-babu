@@ -13,6 +13,9 @@
 typedef uint8_t u8;
 typedef uint16_t u16;
 
+#define DEBUG // print logs to console
+#define LOG // Log to an output file "logging.txt"
+
 typedef struct {
     u8 *rom;
     size_t length;
