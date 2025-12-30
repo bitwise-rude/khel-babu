@@ -14,6 +14,7 @@ PPU init_ppu(Memory *mem, InterruptHandler *ih){
         .p_memory = mem,
         .mode = 2,
         .ih = ih,
+        .frame_buffer = {{0}},
     };
 }
 
@@ -26,6 +27,21 @@ static inline void increment_ly(PPU *ppu){
     if (ly >= TOTAL_LINES) ly = 0;
     set_ly(ppu, ly);
 } 
+
+static void test_lines(PPU *ppu){
+    u8 y = get_ly(ppu);
+
+    for(int x = 0; x < 160;x++){
+        ppu->frame_buffer[y][x] = (y / 16) & 3;
+    }
+}
+
+static void dump_test(PPU *ppu){
+    FILE *fp = fopen("test_dump.pgm","wb");
+    fprintf(fp,"P5\n160 144\n3\n");
+    fwrite(ppu->frame_buffer,1, 160*144,fp);
+    fclose(fp);
+}
 
 void step_ppu(PPU *ppu,u8 cpu_cycles){
     ppu->dot_counter += cpu_cycles;
@@ -45,6 +61,8 @@ void step_ppu(PPU *ppu,u8 cpu_cycles){
                 // Pixel Transfer
                 if (ppu->dot_counter >= MODE3_CYCLES )
                 {
+                    // test
+                    test_lines(ppu);
                     ppu -> mode = 0;
                     ppu -> dot_counter -= MODE3_CYCLES;
                 }else return;
@@ -62,7 +80,10 @@ void step_ppu(PPU *ppu,u8 cpu_cycles){
                     if(ly >= 144)
                     {
                         ppu->mode = 1; 
+                        // test 
+                        dump_test(ppu);
                         request_interrupt(ppu->ih,INT_VBLANK);
+                        exit(0);
                     }
                     else
                     {
