@@ -30,28 +30,10 @@ static inline void increment_ly(PPU *ppu){
 
 static void test_lines(PPU *ppu)
 {
+    u16 start = 0x8000;
     u8 y = get_ly(ppu);
-
-    u16 tile_addr = 0x8000; 
-
-    u8 row = y % 8;
-
-    u8 byte0 = memory_read_8(ppu->p_memory, tile_addr + row * 2);
-    u8 byte1 = memory_read_8(ppu->p_memory, tile_addr + row * 2 + 1);
-
-
-    for (int x = 0; x < 160; x++) {
-        u8 tile_x = x % 8;
-
-        u8 bit = 7 - tile_x;
-
-        u8 lo = (byte0 >> bit) & 1;
-        u8 hi = (byte1 >> bit) & 1;
-
-        u8 color = (hi << 1) | lo;
-
-        ppu->frame_buffer[y][x] = color;
-    }
+    
+    
 }
 
 

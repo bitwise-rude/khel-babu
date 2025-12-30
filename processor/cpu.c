@@ -27,6 +27,7 @@ CPU init_cpu(Memory *p_mem){
         .HL.lo = 	0x4D,
         .SP.val = 	0xFFFE,
         .schedule_ei = 0,
+        .stop_mode = 0,
         #ifdef LOG
         .logs = {0},
         .log_pos = '\0',

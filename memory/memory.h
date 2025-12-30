@@ -34,7 +34,7 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
     }
 
     if (addr >= 0x8000 && addr <=0x9FFF){
-        // not implemented vram
+        // VRAM
         return &p_mem -> VRAM[addr - 0x8000];
     }
 
@@ -51,7 +51,7 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
         return &p_mem -> HRAM [addr - 0xFF80];
     }
 
-    else if (addr== 0xff07){
+    else if (addr== 0xff04){
         // some timer shit 
 
         printf("TIMER STATE IS NOT IMPLEMENTED YET\n");
@@ -141,6 +141,10 @@ static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
 
 
 static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
+    if (addr == 0xFF04){
+        //reset to 0
+        *get_address(p_mem, addr) = 0;
+    }
     u8 *add =  get_address(p_mem,addr);
 
     

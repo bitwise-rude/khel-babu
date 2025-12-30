@@ -36,6 +36,8 @@ typedef struct
     u8 IME;
     u8 schedule_ei;
 
+    u8 stop_mode;
+
     // logger
     #ifdef LOG
         char logs[LOG_BUFFER_SIZE];
