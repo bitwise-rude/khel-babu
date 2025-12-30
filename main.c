@@ -8,6 +8,7 @@
 #include "processor/cpu.h"
 #include "memory/memory.h"
 #include "PPU/ppu.h"
+#include "interrupts/interrupts.h"
 
 // TODO: perform checksums and switchable banks
 void verify_cartridge_header(const u8 *p_cartridge){
@@ -43,14 +44,14 @@ int main(){
 
 	CPU cpu = init_cpu(&memory);
 	PPU ppu = init_ppu(&memory);
+	InterruptHandler interrupt_handler = make_interrupt_handler(&cpu);
 	
 	for (int i = 0; i<=ITERATION; i++){
 		u8 cycles_taken = step_cpu(&cpu);
 		step_ppu(&ppu,cycles_taken);
+		process_interrupts(&interrupt_handler);
 	}
 
 	free(cartridge.rom);
-
-
 }
 

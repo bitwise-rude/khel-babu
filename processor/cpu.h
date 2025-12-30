@@ -55,3 +55,4 @@ typedef struct {
 }Opcode;
 
 u8 step_cpu(CPU *);
+static inline void push(CPU *cpu, u8 val);
