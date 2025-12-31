@@ -1988,7 +1988,7 @@ static Opcode opcodes[256]= {
 
 
 // steps the CPU
-u8 step_cpu(CPU *cpu){
+int step_cpu(CPU *cpu){
 
     // logging
     #ifdef LOG

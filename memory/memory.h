@@ -51,10 +51,8 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
         return &p_mem -> HRAM [addr - 0xFF80];
     }
 
-    else if (addr== 0xff04){
+    else if (addr>= 0xff04 && addr <= 0xff07){
         // some timer shit 
-
-        printf("TIMER STATE IS NOT IMPLEMENTED YET\n");
         return &p_mem -> IO[addr - 0xFF00];
     }
     else if (addr== 0xff0f){
@@ -144,6 +142,7 @@ static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
     if (addr == 0xFF04){
         //reset to 0
         *get_address(p_mem, addr) = 0;
+        return;
     }
     u8 *add =  get_address(p_mem,addr);
 

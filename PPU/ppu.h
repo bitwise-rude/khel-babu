@@ -13,7 +13,7 @@
 typedef struct 
 {
     Memory *p_memory ;
-    u8 mode;
+    size_t mode;
     size_t dot_counter;
     InterruptHandler *ih;
     u8 frame_buffer[144][160];
@@ -21,4 +21,4 @@ typedef struct
 
 
 PPU init_ppu(Memory*, InterruptHandler *);
-void step_ppu(PPU *,u8);
+void step_ppu(PPU *,int);

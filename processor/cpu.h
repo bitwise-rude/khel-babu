@@ -57,5 +57,5 @@ typedef struct {
     void (*opcode_method)();
 }Opcode;
 
-u8 step_cpu(CPU *);
+int step_cpu(CPU *);
 void push(CPU *cpu, u8 val);

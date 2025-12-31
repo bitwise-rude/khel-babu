@@ -44,7 +44,7 @@ static void dump_test(PPU *ppu){
     fclose(fp);
 }
 
-void step_ppu(PPU *ppu,u8 cpu_cycles){
+void step_ppu(PPU *ppu,int cpu_cycles){
     ppu->dot_counter += cpu_cycles;
 
     while (1){
