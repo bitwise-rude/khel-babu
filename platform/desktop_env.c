@@ -7,8 +7,34 @@
 #include "platform.h"
 #include <stdio.h>
 #include <errno.h>
+#include <SDL2/SDL.h>
 
 #define FILE_TO_LOAD "test_roms/2.gb"
+
+#define GB_WIDTH  160
+#define GB_HEIGHT  144
+
+#define SCALE 4
+
+void make_screen(){
+	SDL_Window *window = NULL;
+	SDL_Surface *screenSurface = NULL;
+
+	if(SDL_Init(SDL_INIT_VIDEO)){
+		printf("Couldn't Initialize SDL\n");
+		exit(1);
+	}
+
+	window = SDL_CreateWindow ("Khel-Babu",
+							SDL_WINDOWPOS_UNDEFINED,
+							SDL_WINDOWPOS_UNDEFINED,
+							GB_WIDTH * SCALE, GB_HEIGHT * SCALE,
+							SDL_WINDOW_SHOWN);
+	if(window == NULL){
+		printf("Error Creating window");
+		exit(1);
+	}
+}
 
 /* Uses the OS to read a rom (.bin) file and return the contents */
 Cartridge load_cartridge() {
@@ -60,3 +86,4 @@ Cartridge load_cartridge() {
 	return (Cartridge) {.rom = pcartidge, .length=elements_read};
 		 
 }
+

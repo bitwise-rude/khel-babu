@@ -49,12 +49,14 @@ int main(){
 
 	// timer
 	Timer timer = make_timer(&cpu,&interrupt_handler);
+
+	make_screen();
 	
 	for (int i = 0; i<=ITERATION; i++){
 		int cycles_taken = step_cpu(&cpu);
 		process_time(&timer,cycles_taken);
 		step_ppu(&ppu,cycles_taken);
-		process_interrupts(&interrupt_handler);
+		process_interrupts(&interrupt_handler); // time not made to add cycles
 	}
 
 	free(cartridge.rom);

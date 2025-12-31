@@ -1,7 +1,8 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g
+LIBS = `pkg-config --cflags --libs sdl2`
 
-SRCS =  main.c platform/desktop_env.c processor/cpu.c PPU/ppu.c interrupts/interrupts.c
+SRCS =  main.c platform/desktop_env.c processor/cpu.c PPU/ppu.c interrupts/interrupts.c 
 
 OBJS = $(SRCS:.c=.o)
 
@@ -10,7 +11,7 @@ TARGET = khel-babu
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c  $< -o $@

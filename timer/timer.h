@@ -46,7 +46,7 @@ static inline void set_tima(Timer *timer,u8 val){
     (*prev) = val;
 }
 
-static void process_time(Timer *timer, u8 cycles){
+static void process_time(Timer *timer, int cycles){
     timer->div_cycles += cycles;
 
     // for div register
@@ -62,6 +62,7 @@ static void process_time(Timer *timer, u8 cycles){
     }
     
     // for TIMA
+    
     u16 tac = get_tac(timer);
     u8 enabled=  (tac & 0b00000100)>>2;
     if (enabled != 1 ){
@@ -85,10 +86,10 @@ static void process_time(Timer *timer, u8 cycles){
             break;
         default:
             printf("[Timer Error Occured]\n");
+            exit(1);
     }
 
     timer->tima_cycles += cycles;
-
     while(1){
         if(timer->tima_cycles >= increment_every){
             timer->tima_cycles -= increment_every;
@@ -100,8 +101,12 @@ static void process_time(Timer *timer, u8 cycles){
                 // reset
                 set_tima(timer, get_tma(timer));
                 request_interrupt(timer->ih,(INT)2);
+          
             }
         }
+        else{
+            return;
+        }   
     }
 
 

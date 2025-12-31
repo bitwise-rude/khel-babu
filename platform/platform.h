@@ -25,3 +25,6 @@ typedef struct {
 
 // load cratidge rom data and return the array to the cartidge
 Cartridge load_cartridge(void);	
+
+// screen things
+void make_screen(void);
