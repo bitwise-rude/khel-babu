@@ -19,7 +19,6 @@ typedef struct
     Cartridge *p_cartidge;
     u8 WRAM[0x2000];
     u8 IO[0x80];
-    u8 IE;
     u8 HRAM[0x7F];
     u8 VRAM[0x2000];
 }Memory;
@@ -56,14 +55,12 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
         return &p_mem -> IO[addr - 0xFF00];
     }
     else if (addr== 0xff0f){
-        // some interrupt shit 
-    
+        // Interrupt Flag 
         return &p_mem -> IO[addr - 0xFF00];
     }
-    else if (addr== 0xffff){
-        // more interrupt shit interrupt shit 
-
-        return &p_mem -> IE;
+    else if (addr== 0xffff){ 
+        // Interrupt Enable
+        return &p_mem -> IO[addr - 0xFF00];
     }
     else if (addr== 0xff26){
         // audio shit 

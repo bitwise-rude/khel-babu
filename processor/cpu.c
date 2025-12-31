@@ -102,7 +102,7 @@ static inline void dec_helper(CPU *cpu, u8 *reg){
 }
 
 /* Push in the stack */
-void push(CPU *cpu, u8 val){
+static inline void push(CPU *cpu, u8 val){
     cpu-> SP.val --;
     memory_write(cpu->p_memory, cpu->SP.val, val);
 }
@@ -124,7 +124,7 @@ static inline void call_helper(CPU *cpu){
     cpu->cycles += 6;
 }
 
-static inline void rst_helper(CPU *cpu, u16 addr){
+void rst_helper(CPU *cpu, u16 addr){
     u16 pc = cpu->PC.val;      
 
     push(cpu, pc & 0xFF);     
@@ -766,7 +766,6 @@ static inline void ld_a16_sp(CPU *cpu){
 static inline void ld_a8_a(CPU *cpu){
     u8 operand = get_next_8(cpu);
     u16 actual_adress = 0xFF00 | operand;
-    printf("%x\n",actual_adress);
     memory_write(cpu->p_memory, actual_adress, cpu->AF.hi);
 }
 

@@ -17,31 +17,31 @@
 
 #define SCALE 4
 
-void make_screen(){
-	SDL_Window *window = NULL;
-	SDL_Surface *screenSurface = NULL;
+// void make_screen(){
+// 	SDL_Window *window = NULL;
+// 	SDL_Surface *screenSurface = NULL;
 
-	if(SDL_Init(SDL_INIT_VIDEO)){
-		printf("Couldn't Initialize SDL\n");
-		exit(1);
-	}
+// 	if(SDL_Init(SDL_INIT_VIDEO)){
+// 		printf("Couldn't Initialize SDL\n");
+// 		exit(1);
+// 	}
 
-	window = SDL_CreateWindow ("Khel-Babu",
-							SDL_WINDOWPOS_UNDEFINED,
-							SDL_WINDOWPOS_UNDEFINED,
-							GB_WIDTH * SCALE, GB_HEIGHT * SCALE,
-							SDL_WINDOW_SHOWN);
-	if(window == NULL){
-		printf("Error Creating window");
-		exit(1);
-	}
-	screenSurface = SDL_GetWindowSurface( window );
-	SDL_FillRect( screenSurface, NULL, SDL_MapRGB( screenSurface->format, 0xFF, 0xFF, 0xFF ) );
-	SDL_UpdateWindowSurface( window );
-	SDL_Event e; bool quit = false; while( quit == false ){ while( SDL_PollEvent( &e ) ){ if( e.type == SDL_QUIT ) quit = true; } }
-	SDL_DestroyWindow( window );
-	SDL_Quit();
-}
+// 	window = SDL_CreateWindow ("Khel-Babu",
+// 							SDL_WINDOWPOS_UNDEFINED,
+// 							SDL_WINDOWPOS_UNDEFINED,
+// 							GB_WIDTH * SCALE, GB_HEIGHT * SCALE,
+// 							SDL_WINDOW_SHOWN);
+// 	if(window == NULL){
+// 		printf("Error Creating window");
+// 		exit(1);
+// 	}
+// 	screenSurface = SDL_GetWindowSurface( window );
+// 	SDL_FillRect( screenSurface, NULL, SDL_MapRGB( screenSurface->format, 0xFF, 0xFF, 0xFF ) );
+// 	SDL_UpdateWindowSurface( window );
+// 	SDL_Event e; bool quit = false; while( quit == false ){ while( SDL_PollEvent( &e ) ){ if( e.type == SDL_QUIT ) quit = true; } }
+// 	SDL_DestroyWindow( window );
+// 	SDL_Quit();
+// }
 /* Uses the OS to read a rom (.bin) file and return the contents */
 Cartridge load_cartridge() {
 	FILE *fp = fopen(FILE_TO_LOAD, "rb");
