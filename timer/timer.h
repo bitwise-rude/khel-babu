@@ -2,112 +2,72 @@
 #include "../memory/memory.h"
 #include "../interrupts/interrupts.h"
 
-#define DIV     0xFF04
-#define TIMA     0xFF05
-#define TMA     0xFF06
-#define TAC     0xFF07
+#define DIV   0xFF04
+#define TIMA  0xFF05
+#define TMA   0xFF06
+#define TAC   0xFF07
 
 typedef struct {
-int div_cycles;
-int tima_cycles; 
-CPU *cpu;
-InterruptHandler *ih;
+    int div_cycles;     
+    int tima_cycles;    
+    CPU *cpu;
+    InterruptHandler *ih;
 } Timer;
 
 static Timer make_timer(CPU *cpu, InterruptHandler *ih){
     return (Timer){
-        .cpu = cpu, 
-        .div_cycles = 0,
-        .tima_cycles=0,
+        .cpu = cpu,
         .ih = ih,
+        .div_cycles = 0,
+        .tima_cycles = 0
     };
 }
 
-static inline u8 get_tac(Timer *timer){
-    return memory_read_8(timer->cpu->p_memory,TAC);
+static inline u8 mem_read(Timer *t, u16 addr){
+    return memory_read_8(t->cpu->p_memory, addr);
 }
 
-static inline u8 get_tma(Timer *timer){
-    return memory_read_8(timer->cpu->p_memory,TMA);
+static inline u8 *mem_ptr(Timer *t, u16 addr){
+    return get_address(t->cpu->p_memory, addr);
 }
 
-static inline void inc_tima(Timer *timer){
-    u8 *prev = get_address(timer->cpu->p_memory,TIMA);
-    (*prev)+=1;
-}
+static void timer_step(Timer *t, int cycles)
+{
 
-static inline u8 get_tima(Timer *timer){
-    u8 *prev = get_address(timer->cpu->p_memory,TIMA);
-    return *prev;
-}
+    t->div_cycles += cycles;
 
-static inline void set_tima(Timer *timer,u8 val){
-    u8 *prev = get_address(timer->cpu->p_memory,TIMA);
-    (*prev) = val;
-}
+    while (t->div_cycles >= 64) {          
+        t->div_cycles -= 64;
+        (*mem_ptr(t, DIV))++;
+    }
 
-static void process_time(Timer *timer, int cycles){
-    timer->div_cycles += cycles;
+   
+    u8 tac = mem_read(t, TAC);
 
-    // for div register
-    while (1){ 
-        if(timer->div_cycles >= 256) {
-            timer->div_cycles -= 256;
-            u8 *div = get_address(timer->cpu->p_memory,DIV);
-            (*div) +=1;
+    if (!(tac & 0x04)) {
+        return; 
+    }
+
+    int period;
+    switch (tac & 0x03) {
+        case 0x00: period = 256; break; 
+        case 0x01: period = 4;   break;
+        case 0x02: period = 16;  break; 
+        case 0x03: period = 64;  break;
+    }
+
+    t->tima_cycles += cycles;
+
+    while (t->tima_cycles >= period) {
+        t->tima_cycles -= period;
+
+        u8 *tima = mem_ptr(t, TIMA);
+        u8 old = *tima;
+        (*tima)++;
+
+        if (old == 0xFF) {
+            *tima = mem_read(t, TMA);
+            request_interrupt(t->ih, INT_TIMER);
         }
-        else{
-            break;
-        }
     }
-    
-    // for TIMA
-    
-    u16 tac = get_tac(timer);
-    u8 enabled=  (tac & 0b00000100)>>2;
-    if (enabled != 1 ){
-        return;
-    }
-    u8 clock_select=  (tac & 0b0000011);
-    int increment_every = 0;
-
-    switch (clock_select){
-        case 00:
-            increment_every = 256;
-            break;
-        case 01:
-            increment_every = 4;
-            break;
-        case 10:
-            increment_every = 16;
-            break;
-        case 11:
-            increment_every = 64;
-            break;
-        default:
-            printf("[Timer Error Occured]\n");
-            exit(1);
-    }
-
-    timer->tima_cycles += cycles;
-    while(1){
-        if(timer->tima_cycles >= increment_every){
-            timer->tima_cycles -= increment_every;
-            
-            //increment TIMA register
-            inc_tima(timer);
-
-            if (get_tima(timer) == 0){
-                // reset
-                set_tima(timer, get_tma(timer));
-                request_interrupt(timer->ih,(INT)2);
-          
-            }
-        }
-        else{
-            return;
-        }   
-    }
-
-
 }

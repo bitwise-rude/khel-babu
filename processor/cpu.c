@@ -27,6 +27,7 @@ CPU init_cpu(Memory *p_mem){
         .HL.lo = 	0x4D,
         .SP.val = 	0xFFFE,
         .schedule_ei = 0,
+        .IME =0,
         .stop_mode = 0,
         #ifdef LOG
         .logs = {0},
@@ -765,6 +766,7 @@ static inline void ld_a16_sp(CPU *cpu){
 static inline void ld_a8_a(CPU *cpu){
     u8 operand = get_next_8(cpu);
     u16 actual_adress = 0xFF00 | operand;
+    printf("%x\n",actual_adress);
     memory_write(cpu->p_memory, actual_adress, cpu->AF.hi);
 }
 

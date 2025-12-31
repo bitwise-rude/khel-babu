@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <SDL2/SDL.h>
+#include <stdbool.h>
 
 #define FILE_TO_LOAD "test_roms/2.gb"
 
@@ -34,8 +35,13 @@ void make_screen(){
 		printf("Error Creating window");
 		exit(1);
 	}
+	screenSurface = SDL_GetWindowSurface( window );
+	SDL_FillRect( screenSurface, NULL, SDL_MapRGB( screenSurface->format, 0xFF, 0xFF, 0xFF ) );
+	SDL_UpdateWindowSurface( window );
+	SDL_Event e; bool quit = false; while( quit == false ){ while( SDL_PollEvent( &e ) ){ if( e.type == SDL_QUIT ) quit = true; } }
+	SDL_DestroyWindow( window );
+	SDL_Quit();
 }
-
 /* Uses the OS to read a rom (.bin) file and return the contents */
 Cartridge load_cartridge() {
 	FILE *fp = fopen(FILE_TO_LOAD, "rb");

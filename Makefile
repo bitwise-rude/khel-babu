@@ -1,8 +1,8 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g
-LIBS = `pkg-config --cflags --libs sdl2`
+#LIBS = `pkg-config --cflags --libs sdl2`
 
-SRCS =  main.c platform/desktop_env.c processor/cpu.c PPU/ppu.c interrupts/interrupts.c 
+SRCS =  main.c platform/desktop_env.c processor/cpu.c 
 
 OBJS = $(SRCS:.c=.o)
 
