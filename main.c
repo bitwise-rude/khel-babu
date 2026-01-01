@@ -55,6 +55,7 @@ int main(){
 		.m_cycles = 0,
 		.ly = 0,
 		.ih = &im,
+		.frame_buffer = {{0}},
 	};
 
 	
