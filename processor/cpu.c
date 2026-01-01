@@ -811,7 +811,6 @@ static inline void ld_a_a8(CPU *cpu){
     u8 operand = get_next_8(cpu);
     u16 actual_adress = 0xFF00 | operand;
     cpu->AF.hi = memory_read_8(cpu->p_memory, actual_adress);
-    printf("%x %x\n",actual_adress, cpu->AF.hi);
 }
 
 static inline void ld_a16_a(CPU *cpu){

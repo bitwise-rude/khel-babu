@@ -1,24 +1,14 @@
-/*
-
-    The Pixel Processing Unit
-
-*/
-#pragma once
-#include "../platform/platform.h"
-#include "../memory/memory.h"
 #include "../interrupts/interrupts.h"
-#include <string.h>
 
+#define SCREEN_WIDTH 160
+#define SCREEN_HEIGHT 144
 
-typedef struct 
-{
-    Memory *p_memory ;
-    size_t mode;
-    size_t dot_counter;
-    InterruptHandler *ih;
-    u8 frame_buffer[144][160];
+typedef struct{
+    Memory *p_mem;
+    u8 mode;
+    int m_cycles;
+    u8 ly;
+    InterruptManager *ih;
 }PPU;
 
-
-PPU init_ppu(Memory*, InterruptHandler *);
-void step_ppu(PPU *,int);
+void step_ppu(PPU *ppu, int cycles);

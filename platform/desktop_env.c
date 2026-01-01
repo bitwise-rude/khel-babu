@@ -10,7 +10,7 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 
-#define FILE_TO_LOAD "test_roms/2.gb"
+#define FILE_TO_LOAD "test_roms/1.gb"
 
 #define GB_WIDTH  160
 #define GB_HEIGHT  144

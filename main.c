@@ -9,6 +9,7 @@
 #include "memory/memory.h"
 #include "interrupts/interrupts.h"
 #include "timer/timer.h"
+#include "PPU/ppu.h"
 
 // TODO: perform checksums and switchable banks
 void verify_cartridge_header(const u8 *p_cartridge){
@@ -48,9 +49,18 @@ int main(){
 
 	Timer_Manager tm = make_timer(&cpu, &im);
 
+	PPU ppu = {
+		.p_mem = &memory,
+		.mode = 2,
+		.m_cycles = 0,
+		.ly = 0,
+		.ih = &im,
+	};
+
 	
 	for (int i = 0; i<=ITERATION; i++){
 		int cycles_taken = step_cpu(&cpu);
+		step_ppu(&ppu,cycles_taken);
 		handle_interrupt(&im);
 		// timer_step(&tm,cycles_taken);
 	}
