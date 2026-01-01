@@ -49,7 +49,7 @@ int main(){
 
 	Timer_Manager tm = make_timer(&cpu, &im);
 
-	DrawingContext dr_ctx = make_screen();
+	struct DrawingContext *dr_ctx=make_screen();;
 
 	PPU ppu = {
 		.p_mem = &memory,

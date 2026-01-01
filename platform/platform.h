@@ -9,7 +9,6 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <SDL2/SDL.h>
 
 
 typedef uint8_t u8;
@@ -23,11 +22,7 @@ typedef uint16_t u16;
 #define SCREEN_HEIGHT  144
 
 
-typedef struct {
-    SDL_Window* window;
-    SDL_Renderer* renderer;
-} DrawingContext;
-
+struct DrawingContext;
 
 typedef struct {
     u8 *rom;
@@ -38,6 +33,6 @@ typedef struct {
 Cartridge load_cartridge(void);	
 
 // screen things
-DrawingContext make_screen(void);
-void cleanup_screen(DrawingContext context);
-void screen_event_loop(DrawingContext context) ;
+struct DrawingContext *make_screen();
+void cleanup_screen(struct DrawingContext *context);
+void screen_event_loop(struct DrawingContext *context) ;

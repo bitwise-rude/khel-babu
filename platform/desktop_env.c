@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdbool.h>
+#include <SDL2/SDL.h>
 
 #define FILE_TO_LOAD "test_roms/1.gb"
 
@@ -14,7 +15,13 @@
 
 #define SCALE 4
 
-void screen_event_loop(DrawingContext context) {
+struct DrawingContext{
+    SDL_Window* window;
+    SDL_Renderer* renderer;
+} ;
+
+
+void screen_event_loop(struct DrawingContext *context) {
     SDL_Event e;
     
     while (SDL_PollEvent(&e) != 0) {
@@ -35,25 +42,24 @@ void screen_event_loop(DrawingContext context) {
     }
     }
 
-void cleanup_screen(DrawingContext context) {
-    if (context.renderer != NULL) {
-        SDL_DestroyRenderer(context.renderer);
+void cleanup_screen(struct DrawingContext *context) {
+    if (context->renderer != NULL) {
+        SDL_DestroyRenderer(context->renderer);
     }
-    if (context.window != NULL) {
-        SDL_DestroyWindow(context.window);
+    if (context->window != NULL) {
+        SDL_DestroyWindow(context->window);
     }
     SDL_Quit();
 }
 
-DrawingContext make_screen(){
-	DrawingContext context = {NULL, NULL};
-
+struct DrawingContext *make_screen(){
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("[ERROR] SDL could not initialize! SDL Error: %s\n", SDL_GetError());
         exit(1);
     }
+	struct DrawingContext *context = (struct DrawingContext *) malloc(sizeof(struct DrawingContext));
 
-	context.window = SDL_CreateWindow(
+	context->window = SDL_CreateWindow(
         "Khel-Babu",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
@@ -62,27 +68,25 @@ DrawingContext make_screen(){
         SDL_WINDOW_SHOWN
     );
 
-	if (context.window == NULL) {
+	if (context->window == NULL) {
         printf("[ERROR] Window could not be created! SDL Error: %s\n", SDL_GetError());
         SDL_Quit(); 
         exit(1);
     }
 
-	context.renderer = SDL_CreateRenderer(
-        context.window, 
-        -1, // Index of the rendering driver to initialize (-1 means use the first one that supports the requested flags)
+	context->renderer = SDL_CreateRenderer(
+        context->window, 
+		-1,
         SDL_RENDERER_ACCELERATED
     );
 
-	if (context.renderer == NULL) {
+	if (context->renderer == NULL) {
         printf("[ERROR] Renderer could not be created! SDL Error: %s\n", SDL_GetError());
-        SDL_DestroyWindow(context.window);
+        SDL_DestroyWindow(context->window);
         SDL_Quit();
-        context.window = NULL; // Mark context as failed
-        return context;
+        context->window = NULL;
+		exit(1);
     };
-
-	return context;
 }
 
 /* Uses the OS to read a rom (.bin) file and return the contents */
