@@ -43,16 +43,16 @@ void handle_interrupt(InterruptManager *im){
 
                  // reset the corresponding IF 
                  u8 new_if = memory_read_8(im->cpu->p_memory, IF);
-                 printf("%d is request PREF IF = %x",i,new_if);
+                //  printf("%d is request PREF IF = %x",i,new_if);
                 new_if &= ~(1 << i);
-                printf("NEW IF = %x\n",new_if);
+                // printf("NEW IF = %x\n",new_if);
                 memory_write(im->cpu->p_memory, IF, new_if);
                 
                 im->cpu->cycles += 5;
 
                 // rst is the same thing  as calling
                 rst_helper(im->cpu, IVT[i]);
-                printf("HANDELING INT:%d AND GOING TO %x\n", i,im->cpu->PC.val);
+                // printf("HANDELING INT:%d AND GOING TO %x\n", i,im->cpu->PC.val);
                 // int i ;
                 // scanf("%d",&i);
                 return;

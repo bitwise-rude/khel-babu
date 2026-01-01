@@ -1010,6 +1010,8 @@ static inline void pop_af(CPU *cpu){
     cpu->AF.lo &= 0xF0;
 }
 
+static inline void ei(CPU *cpu){cpu->schedule_ei=2;}
+
 // INC INstructions (Rp)
 static inline void inc_bc(CPU *cpu){ cpu->BC.val += 1;}
 static inline void inc_de(CPU *cpu){ cpu->DE.val += 1;}
@@ -1117,7 +1119,19 @@ static inline void setbit_helper(u8 *value, u8 bit){
     *value |= (1 << bit);
 }
 
-static inline void ei(CPU *cpu){cpu->schedule_ei=2;}
+static inline u8 swap_value(u8 val){
+    return (val << 4) | (val >> 4);
+}
+
+static inline void swap_helper(CPU *cpu, u8 *reg){
+    *reg = swap_value(*reg);
+
+    if (*reg == 0) set_flag(cpu, ZERO); else unset_flag(cpu, ZERO);
+    unset_flag(cpu, SUBTRACT);
+    unset_flag(cpu, HALF_CARRY);
+    unset_flag(cpu, CARRY);
+}
+
 
 /* Opcode Functions Similar to Non prefixed ones */
 static inline void srl_b(CPU *cpu){ srl_helper(cpu, &cpu->BC.hi);}
@@ -1469,6 +1483,27 @@ static inline void set_7_hl(CPU *cpu){
     memory_write(cpu->p_memory, cpu->HL.val, val);
 }
 
+// swap
+static inline void swap_a(CPU *cpu){ swap_helper(cpu, &cpu->AF.hi); }
+static inline void swap_b(CPU *cpu){ swap_helper(cpu, &cpu->BC.hi); }
+static inline void swap_c(CPU *cpu){ swap_helper(cpu, &cpu->BC.lo); }
+static inline void swap_d(CPU *cpu){ swap_helper(cpu, &cpu->DE.hi); }
+static inline void swap_e(CPU *cpu){ swap_helper(cpu, &cpu->DE.lo); }
+static inline void swap_h(CPU *cpu){ swap_helper(cpu, &cpu->HL.hi); }
+static inline void swap_l(CPU *cpu){ swap_helper(cpu, &cpu->HL.lo); }
+
+static inline void swap_hl(CPU *cpu){
+    u16 addr = cpu->HL.val;
+    u8 val = memory_read_8(cpu->p_memory, addr);
+    val = swap_value(val);
+    memory_write(cpu->p_memory, addr, val);
+
+    if (val == 0) set_flag(cpu, ZERO); else unset_flag(cpu, ZERO);
+    unset_flag(cpu, SUBTRACT);
+    unset_flag(cpu, HALF_CARRY);
+    unset_flag(cpu, CARRY);
+}
+
 static Opcode prefixed_opcodes[256]={
     [0x38] = {"SRL B", 2, &srl_b},
     [0x39] = {"SRL C", 2, &srl_c},
@@ -1719,6 +1754,16 @@ static Opcode prefixed_opcodes[256]={
     [0xFD] = {"SET 7,L", 2, &set_7_l},
     [0xFE] = {"SET 7,(HL)", 3, &set_7_hl},
     [0xFF] = {"SET 7,A", 2, &set_7_a},
+
+
+    [0x37] = {"SWAP A", 2, &swap_a},
+    [0x30] = {"SWAP B", 2, &swap_b},
+    [0x31] = {"SWAP C", 2, &swap_c},
+    [0x32] = {"SWAP D", 2, &swap_d},
+    [0x33] = {"SWAP E", 2, &swap_e},
+    [0x34] = {"SWAP H", 2, &swap_h},
+    [0x35] = {"SWAP L", 2, &swap_l},
+    [0x36] = {"SWAP (HL)", 4, &swap_hl},
 };
 
 static inline void cb_helper(CPU *cpu){

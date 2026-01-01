@@ -113,7 +113,6 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
     }
     else if (addr >=0xFEA0 && addr <=0xFEFF){
         // not usable
-        printf("not usable memory\n");
         return &p_mem -> NU[addr-0xFEA0];
     }
 
