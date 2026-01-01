@@ -21,6 +21,13 @@ InterruptManager make_interrupt_manager(CPU *cpu){
     };
 }
 
+
+void request_interrupt(InterruptManager *im, INTERRUPTS _int){
+    u8 prev = memory_read_8(im->cpu->p_memory, IF);
+    prev |= (1 << _int);
+    memory_write(im->cpu->p_memory,IF,prev);
+}
+
 void handle_interrupt(InterruptManager *im){
     if(im->cpu->IME != 1) return;
     u8 ie = memory_read_8(im->cpu->p_memory,IE);
@@ -39,7 +46,7 @@ void handle_interrupt(InterruptManager *im){
 
                 // rst is the same thing  as calling
                 rst_helper(im->cpu, IVT[i]);
-                printf("%d %x\n", i,im->cpu->PC);
+                printf("%d %x\n", i,im->cpu->PC.val);
                 int i ;
                 scanf("%d",&i);
                 return;

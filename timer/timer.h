@@ -2,6 +2,7 @@
 #include "../memory/memory.h"
 #include "../interrupts/interrupts.h"
 
+
 #define DIV   0xFF04
 #define TIMA  0xFF05
 #define TMA   0xFF06
@@ -86,7 +87,10 @@ static void timer_step(Timer *t, int cycles)
             // show weird 4 t cycle wait kinda shit TODO
             u8 *tima = get_address(t->cpu->p_memory, TIMA);
             *tima = mem_read(t, TMA);
+
             // interrupt occurs
+            request_interrupt(t->ih, (INTERRUPTS)2);
+            
         }
     }
     

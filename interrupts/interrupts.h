@@ -5,7 +5,7 @@ typedef struct{
 CPU *cpu;
 }InterruptManager;
 
-typedef enum{
+ typedef enum{
     VBlank,
     LCD,
     Timer,
@@ -18,3 +18,4 @@ typedef enum{
 InterruptManager make_interrupt_manager(CPU *cpu);
 
 void handle_interrupt(InterruptManager *im);
+void request_interrupt(InterruptManager *, INTERRUPTS);
