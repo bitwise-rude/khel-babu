@@ -142,6 +142,8 @@ static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
         // writing to div resets it to 0
         u8 *add =  get_address(p_mem,addr);
         *add = 0;
+        printf("DIV CAME\n QUITTING MEMORY.h");
+        exit(1);
         return;
     }
 
