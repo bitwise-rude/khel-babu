@@ -3,45 +3,88 @@
  * 	For Windows and Linux (Desktop based OS)
  *      (Tested in linux - debian)
  */
-
 #include "platform.h"
 #include <stdio.h>
 #include <errno.h>
-#include <SDL2/SDL.h>
 #include <stdbool.h>
 
 #define FILE_TO_LOAD "test_roms/1.gb"
 
-#define GB_WIDTH  160
-#define GB_HEIGHT  144
+
 
 #define SCALE 4
 
-// void make_screen(){
-// 	SDL_Window *window = NULL;
-// 	SDL_Surface *screenSurface = NULL;
+void screen_event_loop(DrawingContext context) {
+    SDL_Event e;
+    
+    while (SDL_PollEvent(&e) != 0) {
+        if (e.type == SDL_QUIT) {
+			printf("Escape pressed. Signalling quit.\n");
+            cleanup_screen(context);
+			exit(1);
+        }
 
-// 	if(SDL_Init(SDL_INIT_VIDEO)){
-// 		printf("Couldn't Initialize SDL\n");
-// 		exit(1);
-// 	}
+        if (e.type == SDL_KEYDOWN) {
+            if (e.key.keysym.sym == SDLK_ESCAPE) {
+                printf("Escape pressed. Signalling quit.\n");
+                cleanup_screen(context);
+				exit(1);
+            }
+        }
+        
+    }
+    }
 
-// 	window = SDL_CreateWindow ("Khel-Babu",
-// 							SDL_WINDOWPOS_UNDEFINED,
-// 							SDL_WINDOWPOS_UNDEFINED,
-// 							GB_WIDTH * SCALE, GB_HEIGHT * SCALE,
-// 							SDL_WINDOW_SHOWN);
-// 	if(window == NULL){
-// 		printf("Error Creating window");
-// 		exit(1);
-// 	}
-// 	screenSurface = SDL_GetWindowSurface( window );
-// 	SDL_FillRect( screenSurface, NULL, SDL_MapRGB( screenSurface->format, 0xFF, 0xFF, 0xFF ) );
-// 	SDL_UpdateWindowSurface( window );
-// 	SDL_Event e; bool quit = false; while( quit == false ){ while( SDL_PollEvent( &e ) ){ if( e.type == SDL_QUIT ) quit = true; } }
-// 	SDL_DestroyWindow( window );
-// 	SDL_Quit();
-// }
+void cleanup_screen(DrawingContext context) {
+    if (context.renderer != NULL) {
+        SDL_DestroyRenderer(context.renderer);
+    }
+    if (context.window != NULL) {
+        SDL_DestroyWindow(context.window);
+    }
+    SDL_Quit();
+}
+
+DrawingContext make_screen(){
+	DrawingContext context = {NULL, NULL};
+
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        printf("[ERROR] SDL could not initialize! SDL Error: %s\n", SDL_GetError());
+        exit(1);
+    }
+
+	context.window = SDL_CreateWindow(
+        "Khel-Babu",
+        SDL_WINDOWPOS_UNDEFINED,
+        SDL_WINDOWPOS_UNDEFINED,
+        SCREEN_WIDTH*SCALE,
+        SCREEN_HEIGHT*SCALE,
+        SDL_WINDOW_SHOWN
+    );
+
+	if (context.window == NULL) {
+        printf("[ERROR] Window could not be created! SDL Error: %s\n", SDL_GetError());
+        SDL_Quit(); 
+        exit(1);
+    }
+
+	context.renderer = SDL_CreateRenderer(
+        context.window, 
+        -1, // Index of the rendering driver to initialize (-1 means use the first one that supports the requested flags)
+        SDL_RENDERER_ACCELERATED
+    );
+
+	if (context.renderer == NULL) {
+        printf("[ERROR] Renderer could not be created! SDL Error: %s\n", SDL_GetError());
+        SDL_DestroyWindow(context.window);
+        SDL_Quit();
+        context.window = NULL; // Mark context as failed
+        return context;
+    };
+
+	return context;
+}
+
 /* Uses the OS to read a rom (.bin) file and return the contents */
 Cartridge load_cartridge() {
 	FILE *fp = fopen(FILE_TO_LOAD, "rb");

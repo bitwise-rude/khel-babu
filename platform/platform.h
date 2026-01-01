@@ -9,6 +9,8 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <SDL2/SDL.h>
+
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -17,6 +19,15 @@ typedef uint16_t u16;
 #define LOG // Log to an output file "logging.txt"
 #define ITERATION 999999999
 #define LOG_BUFFER_SIZE 1000
+#define SCREEN_WIDTH  160
+#define SCREEN_HEIGHT  144
+
+
+typedef struct {
+    SDL_Window* window;
+    SDL_Renderer* renderer;
+} DrawingContext;
+
 
 typedef struct {
     u8 *rom;
@@ -27,4 +38,6 @@ typedef struct {
 Cartridge load_cartridge(void);	
 
 // screen things
-void make_screen(void);
+DrawingContext make_screen(void);
+void cleanup_screen(DrawingContext context);
+void screen_event_loop(DrawingContext context) ;

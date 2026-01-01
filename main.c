@@ -49,6 +49,8 @@ int main(){
 
 	Timer_Manager tm = make_timer(&cpu, &im);
 
+	DrawingContext dr_ctx = make_screen();
+
 	PPU ppu = {
 		.p_mem = &memory,
 		.mode = 2,
@@ -56,9 +58,10 @@ int main(){
 		.ly = 0,
 		.ih = &im,
 		.frame_buffer = {{0}},
+		.draw_ctx = dr_ctx,
 	};
 
-	
+
 	for (int i = 0; i<=ITERATION; i++){
 		int cycles_taken = step_cpu(&cpu);
 		step_ppu(&ppu,cycles_taken);
@@ -66,6 +69,8 @@ int main(){
 		// timer_step(&tm,cycles_taken);
 	}
 
+	printf("CLEANING UP\n");
 	free(cartridge.rom);
+	cleanup_screen(dr_ctx);
 }
 

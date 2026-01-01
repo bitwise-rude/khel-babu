@@ -1,7 +1,5 @@
 #include "../interrupts/interrupts.h"
-
-#define SCREEN_WIDTH 160
-#define SCREEN_HEIGHT 144
+#include "../platform/platform.h"
 
 typedef struct{
     Memory *p_mem;
@@ -9,7 +7,8 @@ typedef struct{
     int m_cycles;
     u8 ly;
     InterruptManager *ih;
-    u8 frame_buffer[SCREEN_WIDTH][SCREEN_HEIGHT];
+    u8 frame_buffer[SCREEN_HEIGHT][SCREEN_WIDTH];
+    DrawingContext draw_ctx;
 }PPU;
 
 void step_ppu(PPU *ppu, int cycles);
