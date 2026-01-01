@@ -117,8 +117,8 @@ static inline u8 pop(CPU *cpu){
 static inline void call_helper(CPU *cpu){
     u16 addr = get_next_16(cpu);   
 
-    push(cpu, cpu->PC.lo);
     push(cpu, cpu->PC.hi);
+    push(cpu, cpu->PC.lo);
 
     cpu->PC.val = addr;
     cpu->cycles += 6;
@@ -127,8 +127,8 @@ static inline void call_helper(CPU *cpu){
 void rst_helper(CPU *cpu, u16 addr){
     u16 pc = cpu->PC.val;      
 
-    push(cpu, pc & 0xFF);     
     push(cpu, pc >> 8);       
+    push(cpu, pc & 0xFF);     
 
     cpu->PC.val = addr;       
 }
@@ -308,10 +308,32 @@ static inline void jp_nz_a16(CPU *cpu){
     cpu->cycles += 3;
 }
 
+static inline void jp_z_a16(CPU *cpu){
+    u16 addr = get_next_16(cpu);
+
+    if (flag_z(cpu)){
+        cpu->PC.val = addr;
+        cpu->cycles += 4;
+        return;
+    }
+    cpu->cycles += 3;
+}
+
 static inline void jp_nc_a16(CPU *cpu){
     u16 addr = get_next_16(cpu);
 
     if (!flag_c(cpu)){
+        cpu->PC.val = addr;
+        cpu->cycles += 4;
+        return;
+    }
+    cpu->cycles += 3;
+}
+
+static inline void jp_c_a16(CPU *cpu){
+    u16 addr = get_next_16(cpu);
+
+    if (flag_c(cpu)){
         cpu->PC.val = addr;
         cpu->cycles += 4;
         return;
@@ -606,15 +628,15 @@ static inline void inc_m(CPU *cpu)
 
 // RET instructions
 static inline void ret(CPU *cpu){
-    u8 hi = pop(cpu);
     u8 lo = pop(cpu);
+    u8 hi = pop(cpu);
     cpu->PC.val = combine_bytes(hi,lo);
 }
 
 static inline void ret_nz(CPU *cpu){
     if (! flag_z(cpu)){
-        u8 hi = pop(cpu);
         u8 lo = pop(cpu);
+        u8 hi = pop(cpu);
         cpu->PC.val = combine_bytes(hi,lo);
         cpu->cycles += 5;
         return;
@@ -623,8 +645,8 @@ static inline void ret_nz(CPU *cpu){
 }
 static inline void ret_z(CPU *cpu){
     if ( flag_z(cpu)){
-        u8 hi = pop(cpu);
         u8 lo = pop(cpu);
+        u8 hi = pop(cpu);
 
         cpu->PC.val = combine_bytes(hi,lo);
         cpu->cycles += 5;
@@ -635,8 +657,8 @@ static inline void ret_z(CPU *cpu){
 
 static inline void ret_nc(CPU *cpu){
     if (! flag_c(cpu)){
-        u8 hi = pop(cpu);
         u8 lo = pop(cpu);
+        u8 hi = pop(cpu);
 
         cpu->PC.val = combine_bytes(hi,lo);
         cpu->cycles += 4;
@@ -647,8 +669,8 @@ static inline void ret_nc(CPU *cpu){
 
 static inline void ret_c(CPU *cpu){
     if (flag_c(cpu)){
-        u8 hi = pop(cpu);
         u8 lo = pop(cpu);
+        u8 hi = pop(cpu);
 
         cpu->PC.val = combine_bytes(hi,lo);
         cpu->cycles += 4;
@@ -734,7 +756,7 @@ static inline void ld_m_h(CPU *cpu){   ld_r_r_helper(get_address(cpu->p_memory, 
 static inline void ld_m_c(CPU *cpu){   ld_r_r_helper(get_address(cpu->p_memory, cpu->HL.val), &cpu->BC.lo);}
 static inline void ld_m_e(CPU *cpu){   ld_r_r_helper(get_address(cpu->p_memory, cpu->HL.val), &cpu->DE.lo);}
 
-static inline void ld_sp_hl(CPU *cpu){ cpu->SP.val = cpu->HL.val; }
+static inline void ld_sp_hl(CPU *cpu){ cpu->SP.val = cpu->HL.val;}
 
 static inline void ld_hl_sp_s8(CPU *cpu){
     s8 si8 = (s8) get_next_8(cpu);
@@ -767,6 +789,10 @@ static inline void ld_a8_a(CPU *cpu){
     u8 operand = get_next_8(cpu);
     u16 actual_adress = 0xFF00 | operand;
     memory_write(cpu->p_memory, actual_adress, cpu->AF.hi);
+    // int i;
+    // printf("WRITING %x %x", actual_adress, operand);
+    // scanf("%d",&i);
+
 }
 
 static inline void ld_mc_a(CPU *cpu){
@@ -785,6 +811,7 @@ static inline void ld_a_a8(CPU *cpu){
     u8 operand = get_next_8(cpu);
     u16 actual_adress = 0xFF00 | operand;
     cpu->AF.hi = memory_read_8(cpu->p_memory, actual_adress);
+    printf("%x %x\n",actual_adress, cpu->AF.hi);
 }
 
 static inline void ld_a16_a(CPU *cpu){
@@ -934,43 +961,43 @@ static inline void dec_h(CPU *cpu){ dec_helper(cpu,&cpu->HL.hi);}
 
 // stack operations
 static inline void push_bc(CPU *cpu){
-    push(cpu, cpu->BC.lo);
     push(cpu, cpu->BC.hi);
+    push(cpu, cpu->BC.lo);
 }
 
 static inline void push_de(CPU *cpu){
-    push(cpu, cpu->DE.lo);
     push(cpu, cpu->DE.hi);
+    push(cpu, cpu->DE.lo);
 }
 
 static inline void push_hl(CPU *cpu){
-    push(cpu, cpu->HL.lo);
     push(cpu, cpu->HL.hi);
+    push(cpu, cpu->HL.lo);
 }
 
 static inline void push_af(CPU *cpu){
-    push(cpu, cpu->AF.lo &  0xF0);
     push(cpu, cpu->AF.hi);
+    push(cpu, cpu->AF.lo &  0xF0);
 }
 
 static inline void pop_bc(CPU *cpu){
-    cpu->BC.hi = pop(cpu);
     cpu->BC.lo = pop(cpu);
+    cpu->BC.hi = pop(cpu);
 }
 
 static inline void pop_de(CPU *cpu){
-    cpu->DE.hi = pop(cpu);
     cpu->DE.lo = pop(cpu);
+    cpu->DE.hi = pop(cpu);
 }
 
 static inline void pop_hl(CPU *cpu){
-    cpu->HL.hi = pop(cpu);
     cpu->HL.lo = pop(cpu);
+    cpu->HL.hi = pop(cpu);
 }
 
 static inline void pop_af(CPU *cpu){
-    cpu->AF.hi = pop(cpu);
     cpu->AF.lo = pop(cpu);
+    cpu->AF.hi = pop(cpu);
     cpu->AF.lo &= 0xF0;
 }
 
@@ -1722,6 +1749,8 @@ static Opcode opcodes[256]= {
     [0xe9] = {"JP HL", 1,   &jp_hl},
     [0xc2] = {"JP NZ, a16", 0, &jp_nz_a16},
     [0xd2] = {"JP NC, a16", 0, &jp_nc_a16},
+    [0xca] = {"JP Z, a16", 0, &jp_z_a16},
+    [0xda] = {"JP C, a16", 0, &jp_c_a16},
     
     [0x20] = {"JR NZ, s8", 0, &jr_nz},
     [0x30] = {"JR NC, s8", 0, &jr_nc},
@@ -1864,7 +1893,7 @@ static Opcode opcodes[256]= {
     [0xF2] = {"LD A, (m)", 2, &ld_a_mc},
 
     [0xf9] = {"LD SP, HL",2, &ld_sp_hl},
-    [0xf8] = {"LD HL, SP + s8",3, &ld_sp_hl},
+    [0xf8] = {"LD HL, SP + s8",3, &ld_hl_sp_s8},
 
     [0x80] = {"ADD B", 1, &add_a_b},
     [0x81] = {"ADD C", 1, &add_a_c},
@@ -2033,6 +2062,8 @@ int step_cpu(CPU *cpu){
 
     // next instructions
     cpu->PC.val += 1;
+    
+    // interrupt
 
     // execute the instruction
     Opcode to_exec = opcodes[opcode];

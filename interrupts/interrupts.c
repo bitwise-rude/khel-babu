@@ -40,15 +40,19 @@ void handle_interrupt(InterruptManager *im){
             if (((_if>>i) & (0b1)) == 1){
                 // means being requested
                 im->cpu->IME = 0; // reset the ime 
-                memory_write(im->cpu->p_memory,IF, (u8)(_if & (~(1<<i)))); // reset the corresponding IF 
+
+                 // reset the corresponding IF 
+                u8 new_if = memory_read_8(im->cpu->p_memory, IF);
+                new_if &= ~(1 << i);
+                memory_write(im->cpu->p_memory, IF, new_if);
                 
                 im->cpu->cycles += 5;
 
                 // rst is the same thing  as calling
                 rst_helper(im->cpu, IVT[i]);
-                printf("%d %x\n", i,im->cpu->PC.val);
-                int i ;
-                scanf("%d",&i);
+                printf("HANDELING INT:%d AND GOING TO %x\n", i,im->cpu->PC.val);
+                // int i ;
+                // scanf("%d",&i);
                 return;
             }
 

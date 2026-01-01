@@ -1,3 +1,4 @@
+#pragma once
 #include "../processor/cpu.h"
 #include "../memory/memory.h"
 #include "../interrupts/interrupts.h"
@@ -17,10 +18,10 @@ typedef struct {
 
     InterruptManager *ih;
 
-} Timer;
+} Timer_Manager;
 
-static Timer make_timer(CPU *cpu, InterruptManager *ih){
-    return (Timer){
+Timer_Manager make_timer(CPU *cpu, InterruptManager *ih){
+    return (Timer_Manager){
         .cpu = cpu,
         .ih = ih,
         .div_cycles = 0,
@@ -28,21 +29,21 @@ static Timer make_timer(CPU *cpu, InterruptManager *ih){
     };
 }
 
-static inline u8 mem_read(Timer *t, u16 addr){
+u8 mem_read(Timer_Manager *t, u16 addr){
     return memory_read_8(t->cpu->p_memory, addr);
 }
 
-static inline u8 *mem_ptr(Timer *t, u16 addr){
+u8 *mem_ptr(Timer_Manager *t, u16 addr){
     return get_address(t->cpu->p_memory, addr);
 }
 
-static inline void inc_mem(Timer *t, u16 addr){
+void inc_mem(Timer_Manager *t, u16 addr){
     u8 *val =  get_address(t->cpu->p_memory, addr);
     (*val) ++;
 }
 
 
-static void timer_step(Timer *t, int cycles)
+void timer_step(Timer_Manager *t, int cycles)
 {
     // 1 per T-state so, 4 per m-cycle
     t->div_counter += 4 * (cycles);
@@ -89,6 +90,7 @@ static void timer_step(Timer *t, int cycles)
             *tima = mem_read(t, TMA);
 
             // interrupt occurs
+            printf("INTERRUPT REQUESTD BY TIMER\n");
             request_interrupt(t->ih, (INTERRUPTS)2);
             
         }

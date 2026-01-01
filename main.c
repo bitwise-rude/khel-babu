@@ -8,6 +8,7 @@
 #include "processor/cpu.h"
 #include "memory/memory.h"
 #include "interrupts/interrupts.h"
+#include "timer/timer.h"
 
 // TODO: perform checksums and switchable banks
 void verify_cartridge_header(const u8 *p_cartridge){
@@ -45,10 +46,13 @@ int main(){
 
 	InterruptManager im = make_interrupt_manager(&cpu);
 
+	Timer_Manager tm = make_timer(&cpu, &im);
+
 	
 	for (int i = 0; i<=ITERATION; i++){
 		int cycles_taken = step_cpu(&cpu);
 		handle_interrupt(&im);
+		// timer_step(&tm,cycles_taken);
 	}
 
 	free(cartridge.rom);

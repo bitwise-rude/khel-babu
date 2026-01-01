@@ -59,23 +59,20 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
         // Interrupt Flag 
         return &p_mem -> IO[addr - 0xFF00];
     }
-    else if (addr== 0xffff){ 
+    else if (addr== 0xffff){
         // Interrupt Enable
         return &p_mem -> IE;
     }
     else if (addr== 0xff26){
         // audio shit 
-        printf("Audio  IS NOT IMPLEMENTED YET\n");
         return &p_mem -> IO[addr - 0xFF00];
     }
     else if (addr== 0xff25){
         // audio sound panning shit 
-        printf("Audio  IS NOT IMPLEMENTED YET\n");
         return &p_mem -> IO[addr - 0xFF00];
     }
     else if (addr== 0xff24){
         // audio master volume shit 
-        printf("Audio  IS NOT IMPLEMENTED YET\n");
         return &p_mem -> IO[addr - 0xFF00];
     }
 
