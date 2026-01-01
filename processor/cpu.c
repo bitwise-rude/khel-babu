@@ -633,6 +633,16 @@ static inline void ret(CPU *cpu){
     cpu->PC.val = combine_bytes(hi,lo);
 }
 
+static inline void reti(CPU *cpu){
+    u8 lo = pop(cpu);
+    u8 hi = pop(cpu);
+    cpu->PC.val = combine_bytes(hi,lo);
+
+    cpu->IME = 1;
+}
+
+
+
 static inline void ret_nz(CPU *cpu){
     if (! flag_z(cpu)){
         u8 lo = pop(cpu);
@@ -1793,6 +1803,7 @@ static Opcode opcodes[256]= {
     [0xd0] = {"RET NC", 0, &ret_nc},
     [0xc8] = {"RET Z", 0, &ret_z},
     [0xd8] = {"RET C", 0, &ret_c},
+    [0xd9] = {"RETI", 4, &reti},
 
     [0x40] = {"LD B, B", 1, &ld_b_b},
     [0x41] = {"LD B, C", 1, &ld_b_c},

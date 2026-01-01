@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 
-#define FILE_TO_LOAD "test_roms/1.gb"
+#define FILE_TO_LOAD "test_roms/tetris.gb"
 
 #define SCALE 4
 
@@ -95,6 +95,8 @@ struct DrawingContext *make_screen(){
         context->window = NULL;
 		exit(1);
     };
+
+	return context;
 }
 
 /* Uses the OS to read a rom (.bin) file and return the contents */

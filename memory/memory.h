@@ -21,6 +21,8 @@ typedef struct
     u8 IO[0x80];
     u8 HRAM[0x7F];
     u8 VRAM[0x2000];
+    u8 OAM[0xA0];
+    u8 NU[0xFEFF-0xFEA0];
     u8 IE;
 }Memory;
 
@@ -89,6 +91,9 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
      
         return &p_mem -> IO[addr - 0xFF00];
     }
+    else if(addr >=0xFF00 && addr<=0xFF7F){
+        return &p_mem -> IO[addr -0xFF00];
+    }
 
     else if (addr == 0xFF42 || addr == 0xFF43){
         // scrolling not implemented
@@ -102,9 +107,19 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
         // serial transfer not implemented
         return &p_mem -> IO [addr - 0xFF00];
     }
+    else if (addr >=0xFE00 && addr <=0xFE9F){
+        // oam
+        return &p_mem ->OAM[addr - 0xFE00];
+    }
+    else if (addr >=0xFEA0 && addr <=0xFEFF){
+        // not usable
+        printf("not usable memory\n");
+        return &p_mem -> NU[addr-0xFEA0];
+    }
 
     else{
-        printf("NOT IMPLEMENTED MEMORY LOCATION\n");
+        printf("NOT IMPLEMENTED MEMORY LOCATION %x\n",addr);
+        exit(1);
         return NULL;
     }
 
@@ -115,11 +130,11 @@ static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
         printf("READING ");
     #endif
 
-    if (addr == 0xFF44){
-        #ifdef LOG
-        return 0x90; // TODO: change this just for experiment
-        #endif
-    }
+    // if (addr == 0xFF44){
+    //     #ifdef LOG
+    //     return 0x90; // TODO: change this just for experiment
+    //     #endif
+    // }
    
     u8 *add =  get_address(p_mem,addr);
     if (add == NULL){
