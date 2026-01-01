@@ -21,6 +21,7 @@ typedef struct
     u8 IO[0x80];
     u8 HRAM[0x7F];
     u8 VRAM[0x2000];
+    u8 IE;
 }Memory;
 
 static inline u8 *get_address(Memory *p_mem, const u16 addr){
@@ -60,7 +61,7 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
     }
     else if (addr== 0xffff){ 
         // Interrupt Enable
-        return &p_mem -> IO[addr - 0xFF00];
+        return &p_mem -> IE;
     }
     else if (addr== 0xff26){
         // audio shit 
@@ -136,14 +137,15 @@ static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
 
 
 static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
+
     if (addr == 0xFF04){
-        //reset to 0
-        *get_address(p_mem, addr) = 0;
+        // writing to div resets it to 0
+        u8 *add =  get_address(p_mem,addr);
+        *add = 0;
         return;
     }
-    u8 *add =  get_address(p_mem,addr);
 
-    
+    u8 *add =  get_address(p_mem,addr);
     if (add == NULL){
         printf("Writing Unimplemented memory location %x and data %x\n",addr, data);
         exit(0);

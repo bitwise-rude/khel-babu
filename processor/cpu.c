@@ -102,7 +102,7 @@ static inline void dec_helper(CPU *cpu, u8 *reg){
 }
 
 /* Push in the stack */
-static inline void push(CPU *cpu, u8 val){
+void push(CPU *cpu, u8 val){
     cpu-> SP.val --;
     memory_write(cpu->p_memory, cpu->SP.val, val);
 }

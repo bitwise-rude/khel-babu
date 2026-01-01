@@ -48,7 +48,6 @@ int main(){
 	
 	for (int i = 0; i<=ITERATION; i++){
 		int cycles_taken = step_cpu(&cpu);
-		
 		handle_interrupt(&im);
 	}
 

@@ -10,9 +10,9 @@
 u16 IVT[] = {
     [VBlank] = 0x0040,
     [LCD] = 0x0048,
-    [Timer] = 0x0040,
-    [Serial] = 0x0040,
-    [Joypad] = 0x0040,
+    [Timer] = 0x0050,
+    [Serial] = 0x0058,
+    [Joypad] = 0x0060,
 };
 
 InterruptManager make_interrupt_manager(CPU *cpu){
@@ -28,11 +28,9 @@ void handle_interrupt(InterruptManager *im){
 
     // for all interrupts
     for(int i=0; i<=4; i++){
-        // printf("%b\n",ie);
-        if ((ie>>i) & (0b1) == 1) {
+        if (((ie>>i) & (0b1)) == 1) {
             // means the corresponding interrupt is enabled
-            if ((_if>>i) & (0b1) == 1){
-                printf("INT is being requested: %d\n",i);
+            if (((_if>>i) & (0b1)) == 1){
                 // means being requested
                 im->cpu->IME = 0; // reset the ime 
                 memory_write(im->cpu->p_memory,IF, (u8)(_if & (~(1<<i)))); // reset the corresponding IF 
@@ -41,11 +39,12 @@ void handle_interrupt(InterruptManager *im){
 
                 // rst is the same thing  as calling
                 rst_helper(im->cpu, IVT[i]);
-
+                printf("%d %x\n", i,im->cpu->PC);
+                int i ;
+                scanf("%d",&i);
+                return;
             }
 
         }
     }
-    // disable IME before calling
-
 }

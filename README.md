@@ -23,3 +23,4 @@ https://gbdev.io/pandocs/Memory_Map.html
 https://meganesu.github.io/generate-gb-opcodes/
 https://github.com/robert/gameboy-doctor
 http://blog.kevtris.org/blogfiles/Nitty%20Gritty%20Gameboy%20VRAM%20Timing.txt
+https://github.com/Ashiepaws/GBEDG/blob/master/timers/index.md

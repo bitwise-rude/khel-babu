@@ -58,4 +58,5 @@ typedef struct {
 }Opcode;
 
 int step_cpu(CPU *);
+void push(CPU *, u8);
 void rst_helper(CPU *cpu, u16 addr);
