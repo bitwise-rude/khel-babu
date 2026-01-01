@@ -77,12 +77,10 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
     }
 
     else if (addr == 0xff40){
-        // not implemented LCDC : LCD CONTROL
      
         return &p_mem -> IO[addr - 0xFF00];
     }
     else if (addr == 0xff41){
-        // not implemented STAT : LCD CONTROL
      
         return &p_mem -> IO[addr - 0xFF00];
     }

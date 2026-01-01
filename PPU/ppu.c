@@ -1,9 +1,13 @@
 #include "ppu.h"
 #include "memory.h"
 #include "../platform/platform.h"
+#include <stdbool.h>
 
 #define LCDC 0xFF40
 #define LY 0xFF44
+#define DEFAULT_TILE_MAP  0x9800
+#define SCX 0xFF43
+#define SCY 0xFF42
 
 static inline void  sync_ly(PPU *ppu){
     memory_write(ppu->p_mem, LY, ppu->ly);
@@ -13,19 +17,57 @@ static inline u8 get_lcdc(PPU *ppu){
     return memory_read_8(ppu->p_mem, LCDC);
 }
 
-void temp_present(PPU *ppu){
-    // printf("PRESENTED THE Frame Buffer\n");
 
-    // FILE *fp = fopen("test.pgm", "wb");
-    // if (!fp){
-    //     perror("Failed to open test.pgm");
-    //     return;
-    // }
+void perform_fifo_steps(PPU *ppu){
+    // described by 4.8.1 in Pandocs
+    u8 lcdc = get_lcdc(ppu);
 
-    // fprintf(fp, "P5\n160 144\n255\n");
-    // fwrite(ppu->frame_buffer, 1, 160 * 144, fp);
-    // fclose(fp);
-    // exit(1);
+        if (!(lcdc & 0x01)) {
+        // will render white if bg is disabled
+        for (int x = 0; x < SCREEN_WIDTH; x++) {
+            ppu->frame_buffer[ppu->ly][x] = 0;
+        }
+        return;
+    }
+        u16 tile_map_base = (lcdc & 0x08) ? 0x9C00 : 0x9800; // tile map selection
+
+        // tile data selection
+        u16 tile_data_base = (lcdc & 0x10) ? 0x8000 : 0x8800;
+        bool signed_index = !(lcdc & 0x10);
+
+        u8 scx = memory_read_8(ppu->p_mem, SCX);
+        u8 scy = memory_read_8(ppu->p_mem, SCY);
+
+        u8 bg_y = ppu->ly + scy;
+        u8 tile_y = bg_y / 8;
+        u8 pixel_y = bg_y % 8;
+
+        for (int x = 0; x < SCREEN_WIDTH; x++) {
+            u8 bg_x = x + scx;
+            u8 tile_x = bg_x / 8;
+            u8 pixel_x = bg_x % 8;
+
+            // tile index
+            u16 tile_map_addr = tile_map_base + tile_y * 32 + tile_x;
+            u8 tile_id = memory_read_8(ppu->p_mem, tile_map_addr);
+
+            // for signed mode
+            if (signed_index) {
+                tile_id = (s8)tile_id;
+            }
+
+            // tile address
+            u16 tile_addr = tile_data_base + (tile_id * 16) + (pixel_y * 2);
+            u8 lo = memory_read_8(ppu->p_mem, tile_addr);
+            u8 hi = memory_read_8(ppu->p_mem, tile_addr + 1);
+
+            u8 bit = 7 - pixel_x;
+            u8 color =
+                ((hi >> bit) & 1) << 1 |
+                ((lo >> bit) & 1);
+
+            ppu->frame_buffer[ppu->ly][x] = color;
+    }
 }
 
 
@@ -46,9 +88,7 @@ void step_ppu(PPU *ppu, int cycles){
             if(ppu->m_cycles>= 43){
                 ppu->m_cycles -= 43;
                 
-                for (int i=0; i<=SCREEN_WIDTH;i++){
-                    ppu->frame_buffer[ppu->ly][i] = (((ppu->ly * i)%(SCREEN_HEIGHT*SCREEN_WIDTH)))* 255;
-                }
+                perform_fifo_steps(ppu);
 
                 ppu->mode = 0;
             }else return;
@@ -67,7 +107,8 @@ void step_ppu(PPU *ppu, int cycles){
 
 
                     request_interrupt(ppu->ih,VBlank);
-                    temp_present(ppu);
+                    present_framebuffer(ppu->draw_ctx, ppu->frame_buffer);
+                    screen_event_loop(ppu->draw_ctx);
 
                 }else ppu->mode =  2;
                 
@@ -93,5 +134,4 @@ void step_ppu(PPU *ppu, int cycles){
             
 
     }
-    screen_event_loop(ppu->draw_ctx);
 }

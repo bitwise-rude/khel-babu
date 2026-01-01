@@ -11,14 +11,22 @@
 
 #define FILE_TO_LOAD "test_roms/1.gb"
 
-
-
 #define SCALE 4
+
+// testing remove this TODO
+static const uint8_t dmg_palette[4][3] = {
+    {255, 255, 255}, 
+    {170, 170, 170},
+    { 85,  85,  85}, 
+    {  0,   0,   0} 
+};
+
 
 struct DrawingContext{
     SDL_Window* window;
     SDL_Renderer* renderer;
 } ;
+
 
 
 void screen_event_loop(struct DrawingContext *context) {
@@ -140,3 +148,31 @@ Cartridge load_cartridge() {
 		 
 }
 
+void present_framebuffer( struct DrawingContext *ctx, u8 framebuffer[144][160]
+){
+    SDL_Renderer *r = ctx->renderer;
+
+    SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
+    SDL_RenderClear(r);
+
+    for (int y = 0; y < 144; y++) {
+        for (int x = 0; x < 160; x++) {
+
+            u8 color = framebuffer[y][x] & 3;
+            const u8 *rgb = dmg_palette[color];
+
+            SDL_SetRenderDrawColor(r, rgb[0], rgb[1], rgb[2], 255);
+
+            SDL_Rect pixel = {
+                x * SCALE,
+                y * SCALE,
+                SCALE,
+                SCALE
+            };
+
+            SDL_RenderFillRect(r, &pixel);
+        }
+    }
+
+    SDL_RenderPresent(r);
+}

@@ -36,3 +36,7 @@ Cartridge load_cartridge(void);
 struct DrawingContext *make_screen();
 void cleanup_screen(struct DrawingContext *context);
 void screen_event_loop(struct DrawingContext *context) ;
+void present_framebuffer(
+    struct DrawingContext *ctx,
+    uint8_t framebuffer[144][160]
+);
