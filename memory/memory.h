@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -26,13 +27,20 @@ typedef struct
     u8 IE;
 }Memory;
 
-static inline u8 *get_address(Memory *p_mem, const u16 addr){
+static inline u8 *get_address(Memory *p_mem, const u16 addr, const bool is_writing){
     if (addr<= 0x7FFF){
         // Cartridge Rom
         #ifdef DEBUG
             printf(" FROM CARTRIDGE ROM AT: %.4xH\n]",addr);
         #endif
         return &p_mem->p_cartidge->rom[addr];
+    }
+
+    if (addr == 0xFF04){
+        // writing to div resets it to 0
+        printf("DIV CAME\n QUITTING MEMORY.h");
+        exit(1);
+        return 0;
     }
 
     if (addr >= 0x8000 && addr <=0x9FFF){
@@ -138,7 +146,7 @@ static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
     //     #endif
     // }
    
-    u8 *add =  get_address(p_mem,addr);
+    u8 *add =  get_address(p_mem,addr,false);
     if (add == NULL){
         printf("Reading Unimplemented memory location %x\n",addr);
         exit(0);
@@ -149,17 +157,7 @@ static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
 
 
 static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
-
-    if (addr == 0xFF04){
-        // writing to div resets it to 0
-        u8 *add =  get_address(p_mem,addr);
-        *add = 0;
-        printf("DIV CAME\n QUITTING MEMORY.h");
-        exit(1);
-        return;
-    }
-
-    u8 *add =  get_address(p_mem,addr);
+    u8 *add =  get_address(p_mem,addr,true);
     if (add == NULL){
         printf("Writing Unimplemented memory location %x and data %x\n",addr, data);
         exit(0);

@@ -66,7 +66,7 @@ int main(){
 		int cycles_taken = step_cpu(&cpu);
 		step_ppu(&ppu,cycles_taken);
 		handle_interrupt(&im);
-		// timer_step(&tm,cycles_taken);
+		timer_step(&tm,cycles_taken);
 	}
 
 	printf("CLEANING UP\n");

@@ -34,11 +34,11 @@ u8 mem_read(Timer_Manager *t, u16 addr){
 }
 
 u8 *mem_ptr(Timer_Manager *t, u16 addr){
-    return get_address(t->cpu->p_memory, addr);
+    return get_address(t->cpu->p_memory, addr,true);
 }
 
 void inc_mem(Timer_Manager *t, u16 addr){
-    u8 *val =  get_address(t->cpu->p_memory, addr);
+    u8 *val =  get_address(t->cpu->p_memory, addr,true);
     (*val) ++;
 }
 
@@ -92,7 +92,7 @@ void timer_step(Timer_Manager *t, int cycles)
         if (mem_read(t,TIMA) == 0){
             // overflow
             // show weird 4 t cycle wait kinda shit TODO
-            u8 *tima = get_address(t->cpu->p_memory, TIMA);
+            u8 *tima = get_address(t->cpu->p_memory, TIMA,true);
             *tima = mem_read(t, TMA);
 
             // interrupt occurs
