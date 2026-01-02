@@ -2,6 +2,7 @@
 #include "string.h"
 #include "../platform/platform.h"
 #include "stdlib.h"
+#include <stdbool.h>
 
 
 /* Helper Macros */
@@ -29,6 +30,7 @@ CPU init_cpu(Memory *p_mem){
         .schedule_ei = 0,
         .IME =0,
         .stop_mode = 0,
+        .is_halted = false,
         #ifdef LOG
         .logs = {0},
         .log_pos = '\0',
@@ -1081,6 +1083,12 @@ static inline void rla(CPU *cpu){
         cpu->AF.lo |= CARRY;
 }
 
+static inline void halt(CPU *cpu){
+    printf("HALTED\n");
+    u8 useless = get_next_8(cpu);
+    cpu->is_halted = true;
+}
+
 
 /* CB Prefixed -> Helper Functions */
 
@@ -2097,13 +2105,17 @@ static Opcode opcodes[256]= {
     [0xfb] = {"EI", 1, &ei},
 
     [0x2f] = {"CPL", 1, &cpl},
-    [0x3f] = {"CCF", 1, &ccf}
+    [0x3f] = {"CCF", 1, &ccf},
+
+    [0x76] = {"HALT", 1, &halt},
 };
 
 
 // steps the CPU
 int step_cpu(CPU *cpu){
-
+    if(cpu->is_halted){
+        return 0;
+    }
     // logging
     #ifdef LOG
     char temp[128];

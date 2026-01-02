@@ -3,6 +3,7 @@
 #include "interrupts.h"
 #include "memory.h"
 #include "../processor/cpu.h"
+#include <stdbool.h>
 
 #define IE 0xFFFF
 #define IF 0xFF0F
@@ -29,9 +30,15 @@ void request_interrupt(InterruptManager *im, INTERRUPTS _int){
 }
 
 void handle_interrupt(InterruptManager *im){
-    if(im->cpu->IME != 1) return;
     u8 ie = memory_read_8(im->cpu->p_memory,IE);
     u8 _if = memory_read_8(im -> cpu->p_memory, IF);
+
+    if ((ie & _if) && im->cpu->is_halted){
+        im->cpu->is_halted = false;
+    }
+
+    if (!im->cpu->IME)
+        return;
 
     // for all interrupts
     for(int i=0; i<=4; i++){
@@ -43,18 +50,14 @@ void handle_interrupt(InterruptManager *im){
 
                  // reset the corresponding IF 
                  u8 new_if = memory_read_8(im->cpu->p_memory, IF);
-                //  printf("%d is request PREF IF = %x",i,new_if);
                 new_if &= ~(1 << i);
-                // printf("NEW IF = %x\n",new_if);
                 memory_write(im->cpu->p_memory, IF, new_if);
                 
                 im->cpu->cycles += 5;
 
                 // rst is the same thing  as calling
                 rst_helper(im->cpu, IVT[i]);
-                // printf("HANDELING INT:%d AND GOING TO %x\n", i,im->cpu->PC.val);
-                // int i ;
-                // scanf("%d",&i);
+
                 return;
             }
 

@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "../memory/memory.h"
 #include <stdio.h>
+#include <stdbool.h>
 
 
 typedef uint8_t u8;
@@ -43,6 +44,9 @@ typedef struct
         char logs[LOG_BUFFER_SIZE];
         size_t log_pos;
     #endif
+
+    bool is_halted;
+
 
 }CPU;
 

@@ -72,6 +72,9 @@ void perform_fifo_steps(PPU *ppu){
 
 
 void step_ppu(PPU *ppu, int cycles){
+    if (cycles == 0){
+        cycles = 1;
+    }
     ppu->m_cycles += cycles;
 
     switch(ppu->mode){
