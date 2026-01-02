@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 
-#define FILE_TO_LOAD "test_roms/tetris.gb"
+#define FILE_TO_LOAD "test_roms/all.gb"
 
 #define SCALE 4
 

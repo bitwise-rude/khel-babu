@@ -1055,6 +1055,33 @@ static inline void rra(CPU *cpu){
     unset_flag(cpu, HALF_CARRY);
 }
 
+void rlca(CPU *cpu){
+    u8 cnt = cpu->AF.hi;
+    u8 carry = (cnt & 0x80)>>7;
+    cnt = (cnt << 1) | carry;
+    cpu->AF.hi = cnt;
+
+    unset_flag(cpu,HALF_CARRY);
+    unset_flag(cpu,SUBTRACT);
+    unset_flag(cpu,ZERO);
+
+    carry == 1 ? set_flag(cpu,CARRY):unset_flag(cpu,CARRY);
+}
+
+static inline void rla(CPU *cpu){
+    u8 a = cpu->AF.hi;
+    u8 old_carry = (cpu->AF.lo & CARRY) ? 1 : 0;
+    u8 new_carry = (a & 0x80) >> 7;
+
+    a = (a << 1) | old_carry;
+    cpu->AF.hi = a;
+
+    cpu->AF.lo = 0;         
+    if (new_carry)
+        cpu->AF.lo |= CARRY;
+}
+
+
 /* CB Prefixed -> Helper Functions */
 
 static inline void srl_helper(CPU *cpu, u8 *reg){
@@ -2029,6 +2056,8 @@ static Opcode opcodes[256]= {
     [0xD6] = {"SUB A, d8", 2, &sub_d8},
     [0xE6] = {"AND A, d8", 2, &and_d8},
     [0xF6] = {"OR A, d8", 2, &or_d8},
+    [0x07] = {"RLCA", 1, &rlca},
+    [0x17] = {"RLA", 1, &rla},
 
 
     [0xCE] = {"ADC A, d8", 2, &adc_a_d8},
@@ -2122,7 +2151,7 @@ int step_cpu(CPU *cpu){
 
     // execute the instruction
     Opcode to_exec = opcodes[opcode];
-    if (to_exec.opcode_method == NULL){printf("NOT IMPLEMENTED %x\n",opcode); exit(1);}
+    if (to_exec.opcode_method == NULL){printf("NOT IMPLEMENTED OPCODE: %x\n",opcode); exit(1);}
 
     #ifdef DEBUG
         printf("[EXECUTING THE INSTRUCTION: %s]\n",to_exec.name);

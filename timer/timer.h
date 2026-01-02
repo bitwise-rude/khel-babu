@@ -91,7 +91,7 @@ void timer_step(Timer_Manager *t, int cycles)
 
             // interrupt occurs
             printf("INTERRUPT REQUESTD BY TIMER\n");
-            request_interrupt(t->ih, (INTERRUPTS)2);
+            request_interrupt(t->ih, Timer);
             
         }
     }
