@@ -49,17 +49,23 @@ void timer_step(Timer_Manager *t, int cycles)
     t->div_counter += 4 * (cycles);
 
     // map top 8 bits to FF04
-    u8 *div = get_address(t->cpu->p_memory,DIV); // TODO: change this to direct acces
+    u8 *div = &t->cpu->p_memory->IO[DIV-0xFF00];
+    // u8 *div = get_address(t->cpu->p_memory,DIV);
+
+    // if(*div == 0){
+    //     // we know memory is written
+    //     printf("MEMORY RESET");
+    //     t->div_counter = 0;
+    // }
+
     *div = (u8) (((t->div_counter) >> 8) & 0x00FF);
-
-
+    
     // tac configuer
     u8 tac = mem_read(t,TAC);
-
     u8 t_en = (u8)((tac)>>2) &(0b00000001);
     u8 clock_sel = (u8)((tac) & (0b00000011));
-    u8 test_bit;
 
+    u8 test_bit;
     switch(clock_sel){
         case 0b00:
             test_bit = (t->div_counter & 0b0000001000000000) >> 9; // bit 9

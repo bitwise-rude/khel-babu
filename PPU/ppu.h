@@ -8,6 +8,10 @@ typedef struct{
     u8 ly;
     InterruptManager *ih;
     u8 frame_buffer[SCREEN_HEIGHT][SCREEN_WIDTH];
+
+    u8 latched_scx;
+    u8 latched_scy;
+    
     struct DrawingContext *draw_ctx;
 }PPU;
 

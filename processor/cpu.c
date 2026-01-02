@@ -1084,7 +1084,6 @@ static inline void rla(CPU *cpu){
 }
 
 static inline void halt(CPU *cpu){
-    printf("HALTED\n");
     u8 useless = get_next_8(cpu);
     cpu->is_halted = true;
 }
@@ -1166,6 +1165,17 @@ static inline void swap_helper(CPU *cpu, u8 *reg){
     unset_flag(cpu, HALF_CARRY);
     unset_flag(cpu, CARRY);
 }
+
+static inline void sla_helper(CPU *cpu, u8 *val) {
+    u8 original = *val;
+    *val <<= 1;
+
+    // flags
+    cpu->AF.lo &= ~(ZERO | SUBTRACT | HALF_CARRY | CARRY); // clear all first
+    if(*val == 0) cpu->AF.lo |= ZERO;
+    cpu->AF.lo |= (original & 0x80) ? CARRY : 0;
+}
+
 
 
 /* Opcode Functions Similar to Non prefixed ones */
@@ -1539,6 +1549,22 @@ static inline void swap_hl(CPU *cpu){
     unset_flag(cpu, CARRY);
 }
 
+// sla 
+static inline void sla_hl(CPU *cpu){
+    u8 val = memory_read_8(cpu->p_memory, cpu->HL.val);
+    sla_helper(cpu, &val);
+    memory_write(cpu->p_memory, cpu->HL.val, val);
+}
+
+static inline void sla_b(CPU *cpu){ sla_helper(cpu, &cpu->BC.hi); }
+static inline void sla_c(CPU *cpu){ sla_helper(cpu, &cpu->BC.lo); }
+static inline void sla_d(CPU *cpu){ sla_helper(cpu, &cpu->DE.hi); }
+static inline void sla_e(CPU *cpu){ sla_helper(cpu, &cpu->DE.lo); }
+static inline void sla_h(CPU *cpu){ sla_helper(cpu, &cpu->HL.hi); }
+static inline void sla_l(CPU *cpu){ sla_helper(cpu, &cpu->HL.lo); }
+static inline void sla_a(CPU *cpu){ sla_helper(cpu, &cpu->AF.hi); }
+
+
 static Opcode prefixed_opcodes[256]={
     [0x38] = {"SRL B", 2, &srl_b},
     [0x39] = {"SRL C", 2, &srl_c},
@@ -1799,6 +1825,16 @@ static Opcode prefixed_opcodes[256]={
     [0x34] = {"SWAP H", 2, &swap_h},
     [0x35] = {"SWAP L", 2, &swap_l},
     [0x36] = {"SWAP (HL)", 4, &swap_hl},
+
+    [0x20] = {"SLA B", 2, &sla_b},
+    [0x21] = {"SLA C", 2, &sla_c},
+    [0x22] = {"SLA D", 2, &sla_d},
+    [0x23] = {"SLA E", 2, &sla_e},
+    [0x24] = {"SLA H", 2, &sla_h},
+    [0x25] = {"SLA L", 2, &sla_l},
+    [0x26] = {"SLA (HL)", 4, &sla_hl}, 
+    [0x27] = {"SLA A", 2, &sla_a},
+
 };
 
 static inline void cb_helper(CPU *cpu){
@@ -2114,7 +2150,7 @@ static Opcode opcodes[256]= {
 // steps the CPU
 int step_cpu(CPU *cpu){
     if(cpu->is_halted){
-        return 0;
+        return 4;
     }
     // logging
     #ifdef LOG

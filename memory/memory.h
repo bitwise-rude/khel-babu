@@ -61,6 +61,9 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr){
         // Interrupt Flag 
         return &p_mem -> IO[addr - 0xFF00];
     }
+    else if(addr >=0xE000 && addr <= 0xFDFF){
+        return &p_mem -> WRAM[addr - 0xE000];
+    }
     else if (addr== 0xffff){
         // Interrupt Enable
         return &p_mem -> IE;
