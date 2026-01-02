@@ -29,7 +29,7 @@ void request_interrupt(InterruptManager *im, INTERRUPTS _int){
     memory_write(im->cpu->p_memory,IF,prev);
 }
 
-void handle_interrupt(InterruptManager *im){
+int handle_interrupt(InterruptManager *im){
     u8 ie = memory_read_8(im->cpu->p_memory,IE);
     u8 _if = memory_read_8(im -> cpu->p_memory, IF);
 
@@ -38,7 +38,7 @@ void handle_interrupt(InterruptManager *im){
     }
 
     if (!im->cpu->IME)
-        return;
+        return 0 ;
 
     // for all interrupts
     for(int i=0; i<=4; i++){
@@ -53,12 +53,10 @@ void handle_interrupt(InterruptManager *im){
                 new_if &= ~(1 << i);
                 memory_write(im->cpu->p_memory, IF, new_if);
                 
-                im->cpu->cycles += 5;
-
                 // rst is the same thing  as calling
                 rst_helper(im->cpu, IVT[i]);
-
-                return;
+                im->cpu->cycles += 5;
+                return 5;
             }
 
         }

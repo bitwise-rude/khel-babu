@@ -17,5 +17,5 @@ CPU *cpu;
 
 InterruptManager make_interrupt_manager(CPU *cpu);
 
-void handle_interrupt(InterruptManager *im);
+int handle_interrupt(InterruptManager *im);
 void request_interrupt(InterruptManager *, INTERRUPTS);

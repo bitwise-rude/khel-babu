@@ -2143,7 +2143,7 @@ static Opcode opcodes[256]= {
     [0x2f] = {"CPL", 1, &cpl},
     [0x3f] = {"CCF", 1, &ccf},
 
-    [0x76] = {"HALT", 1, &halt},
+    // [0x76] = {"HALT", 1, &halt},
 };
 
 

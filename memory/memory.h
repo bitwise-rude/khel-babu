@@ -36,7 +36,7 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr, const bool is_writi
         return &p_mem->p_cartidge->rom[addr];
     }
 
-    if (addr == 0xFF04){
+    if (addr == 0xFF04 && is_writing == true){
         // writing to div resets it to 0
         printf("DIV CAME\n QUITTING MEMORY.h");
         exit(1);
@@ -140,11 +140,12 @@ static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
         printf("READING ");
     #endif
 
-    // if (addr == 0xFF44){
-    //     #ifdef LOG
-    //     return 0x90; // TODO: change this just for experiment
-    //     #endif
-    // }
+
+    if (addr == 0xFF44){
+        #ifdef LOG
+            return 0x90; // TODO: change this just for experiment
+        #endif
+    }
    
     u8 *add =  get_address(p_mem,addr,false);
     if (add == NULL){
@@ -165,8 +166,7 @@ static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
     #ifdef DEBUG
         printf("WRITING  AT: %x and Value: %x\n",addr,data);
     #endif
-    *add = data;
-   
+    *add = data;  
 }
 
 
