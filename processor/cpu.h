@@ -31,7 +31,7 @@ typedef struct
 
     // memory
     Memory *p_memory;
-    size_t cycles;
+    int cycles;
 
     //interrupts
     u8 IME;

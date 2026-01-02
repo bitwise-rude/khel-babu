@@ -186,6 +186,11 @@ static inline void add_a_helper(CPU *cpu,  const u8 operand){
 
 static inline void and_helper(CPU *cpu , const u8 operand){
     u8 result = cpu->AF.hi & operand;
+    if (operand == 0x04){
+        printf("RESULT OF AND %d\n",result);
+        int i ;
+        scanf("%d",&i);
+    }
     (result == 0) ? set_flag(cpu, ZERO): unset_flag(cpu, ZERO);
     unset_flag(cpu,SUBTRACT);
     set_flag (cpu, HALF_CARRY); // documented behaviour but not sure TODO
@@ -673,10 +678,10 @@ static inline void ret_nc(CPU *cpu){
         u8 hi = pop(cpu);
 
         cpu->PC.val = combine_bytes(hi,lo);
-        cpu->cycles += 4;
+        cpu->cycles += 5;
         return ;
     }
-    cpu->cycles += 3;
+    cpu->cycles += 2;
 }
 
 static inline void ret_c(CPU *cpu){
@@ -685,10 +690,10 @@ static inline void ret_c(CPU *cpu){
         u8 hi = pop(cpu);
 
         cpu->PC.val = combine_bytes(hi,lo);
-        cpu->cycles += 4;
+        cpu->cycles += 5;
         return ;
     }
-    cpu->cycles += 3;
+    cpu->cycles += 2;
 }
 
 // LD insturcitons
@@ -1868,7 +1873,7 @@ static inline void ccf(CPU *cpu)
 static Opcode opcodes[256]= {
     [0xCB] = {"CB Prefixed", 0, &cb_helper},
 
-    [0] = {"NOP",       4,      &nop},
+    [0] = {"NOP",       1,      &nop},
 
     [0xc3] = {"JP a16", 4,      &jp_a16},
     [0xe9] = {"JP HL", 1,   &jp_hl},
@@ -2143,14 +2148,14 @@ static Opcode opcodes[256]= {
     [0x2f] = {"CPL", 1, &cpl},
     [0x3f] = {"CCF", 1, &ccf},
 
-    // [0x76] = {"HALT", 1, &halt},
+    [0x76] = {"HALT", 1, &halt},
 };
 
 
 // steps the CPU
 int step_cpu(CPU *cpu){
     if(cpu->is_halted){
-        return 4;
+        return 1;
     }
     // logging
     #ifdef LOG
@@ -2213,8 +2218,8 @@ int step_cpu(CPU *cpu){
         cpu->schedule_ei --;
         if(cpu->schedule_ei == 0) cpu->IME = 1;
     }
+    printf("INSTRUCTION TOOK %d\n",cpu->cycles - prev_cycles);
         
-
-    return (u8) (cpu->cycles - prev_cycles);
+    return (cpu->cycles - prev_cycles);
 }
 

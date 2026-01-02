@@ -27,6 +27,7 @@ void request_interrupt(InterruptManager *im, INTERRUPTS _int){
     u8 prev = memory_read_8(im->cpu->p_memory, IF);
     prev |= (1 << _int);
     memory_write(im->cpu->p_memory,IF,prev);
+    // printf("WROTE REQ INTERRUPT %d\n",_int);
 }
 
 int handle_interrupt(InterruptManager *im){
@@ -56,9 +57,11 @@ int handle_interrupt(InterruptManager *im){
                 // rst is the same thing  as calling
                 rst_helper(im->cpu, IVT[i]);
                 im->cpu->cycles += 5;
+                printf("INTERRUPT CALLING\n");
                 return 5;
             }
 
         }
     }
+    return 0;
 }

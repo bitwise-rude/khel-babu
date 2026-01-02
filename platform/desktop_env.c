@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 
-#define FILE_TO_LOAD "test_roms/8.gb"
+#define FILE_TO_LOAD "test_roms/2.gb"
 
 #define SCALE 4
 

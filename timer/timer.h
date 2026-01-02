@@ -26,6 +26,7 @@ Timer_Manager make_timer(CPU *cpu, InterruptManager *ih){
         .ih = ih,
         .div_cycles = 0,
         .prev_res = 0,
+        .div_counter = 0,
     };
 }
 
@@ -42,66 +43,47 @@ void inc_mem(Timer_Manager *t, u16 addr){
     (*val) ++;
 }
 
+void timer_reset_div(Timer_Manager *t){
+    // Writing any value to DIV resets the internal counter
+    t->div_counter = 0;
+    u8 *div = get_address(t->cpu->p_memory, DIV, true);
+    *div = 0;
+}
 
-void timer_step(Timer_Manager *t, int cycles)
+
+void timer_step(Timer_Manager *t, int m_cycles)
 {
-    // 1 per T-state so, 4 per m-cycle
-    t->div_counter += 4 * (cycles);
+    for (int i = 0; i < m_cycles * 4; i++) {
 
-    // map top 8 bits to FF04
-    u8 *div = &t->cpu->p_memory->IO[DIV-0xFF00];
-    // u8 *div = get_address(t->cpu->p_memory,DIV);
+        t->div_counter++;
 
-    // if(*div == 0){
-    //     // we know memory is written
-    //     printf("MEMORY RESET");
-    //     t->div_counter = 0;
-    // }
+        u8 *div = get_address(t->cpu->p_memory, DIV, false);
+        *div = (t->div_counter >> 8) & 0xFF;
 
-    *div = (u8) (((t->div_counter) >> 8) & 0x00FF);
-    
-    // tac configuer
-    u8 tac = mem_read(t,TAC);
-    u8 t_en = (u8)((tac)>>2) &(0b00000001);
-    u8 clock_sel = (u8)((tac) & (0b00000011));
+        u8 tac = mem_read(t, TAC);
+        u8 t_en = (tac >> 2) & 1;
 
-    u8 test_bit;
-    switch(clock_sel){
-        case 0b00:
-            test_bit = (t->div_counter & 0b0000001000000000) >> 9; // bit 9
-            break;
-        case 0b01:
-            test_bit = (t->div_counter & 0b0000000000001000) >> 3; // bit 3
-            break;
-        case 0b10:
-            test_bit = (t->div_counter & 0b0000000000100000)>> 5; // bit 5
-            break;
-        case 0b11:
-            test_bit = (t->div_counter & 0b0000000010000000)>> 7; // bit 7
-            break;
-        default:
-            printf("TIMER TAC this state shouldn't exist\n");
-            exit(1);
-    }
-
-    u8 and_result = test_bit & t_en;
-
-    if (t->prev_res == 1 && and_result == 0){
-        inc_mem(t,TIMA);
-
-        if (mem_read(t,TIMA) == 0){
-            // overflow
-            // show weird 4 t cycle wait kinda shit TODO
-            u8 *tima = get_address(t->cpu->p_memory, TIMA,true);
-            *tima = mem_read(t, TMA);
-
-            // interrupt occurs
-            printf("INTERRUPT REQUESTD BY TIMER\n");
-            request_interrupt(t->ih, Timer);
-            
+        u8 test_bit;
+        switch (tac & 0b11) {
+            case 0: test_bit = (t->div_counter >> 9) & 1; break;
+            case 1: test_bit = (t->div_counter >> 3) & 1; break;
+            case 2: test_bit = (t->div_counter >> 5) & 1; break;
+            case 3: test_bit = (t->div_counter >> 7) & 1; break;
         }
-    }
-    
-    t->prev_res = and_result;
 
+        u8 and_result = test_bit & t_en;
+
+        if (t->prev_res == 1 && and_result == 0) {
+            u8 tima = mem_read(t, TIMA);
+            if (tima == 0xFF) {
+                *get_address(t->cpu->p_memory, TIMA, true) =
+                    mem_read(t, TMA);
+                request_interrupt(t->ih, Timer);
+            } else {
+                inc_mem(t, TIMA);
+            }
+        }
+
+        t->prev_res = and_result;
+    }
 }

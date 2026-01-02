@@ -45,28 +45,28 @@ int main(){
 	InterruptManager im = make_interrupt_manager(&cpu);
 	Timer_Manager tm = make_timer(&cpu, &im);
 
-	// struct DrawingContext *dr_ctx=make_screen();;
+	struct DrawingContext *dr_ctx=make_screen();;
 
-	// PPU ppu = {
-	// 	.p_mem = &memory,
-	// 	.mode = 2,
-	// 	.m_cycles = 0,
-	// 	.ly = 0,
-	// 	.ih = &im,
-	// 	.frame_buffer = {{0}},
-	// 	.draw_ctx = dr_ctx,
-	// };
+	PPU ppu = {
+		.p_mem = &memory,
+		.mode = 2,
+		.m_cycles = 0,
+		.ly = 0,
+		.ih = &im,
+		.frame_buffer = {{0}},
+		.draw_ctx = dr_ctx,
+	};
 
 	int cpu_cycles=0, int_cycles=0;
 
 	for (int i = 0; i<=ITERATION; i++){
 		cpu_cycles = step_cpu(&cpu);
-		// step_ppu(&ppu,cycles_taken);
+		step_ppu(&ppu,cpu_cycles);
 		int_cycles = handle_interrupt(&im);
-		timer_step(&tm,cpu_cycles + int_cycles);
+		timer_step(&tm,cpu_cycles);
 	}
 
 	free(cartridge.rom);
-	// cleanup_screen(dr_ctx);
+	cleanup_screen(dr_ctx);
 }
 
