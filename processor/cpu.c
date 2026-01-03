@@ -186,11 +186,6 @@ static inline void add_a_helper(CPU *cpu,  const u8 operand){
 
 static inline void and_helper(CPU *cpu , const u8 operand){
     u8 result = cpu->AF.hi & operand;
-    if (operand == 0x04){
-        printf("RESULT OF AND %d\n",result);
-        int i ;
-        scanf("%d",&i);
-    }
     (result == 0) ? set_flag(cpu, ZERO): unset_flag(cpu, ZERO);
     unset_flag(cpu,SUBTRACT);
     set_flag (cpu, HALF_CARRY); // documented behaviour but not sure TODO
@@ -498,10 +493,15 @@ static inline void di( CPU *cpu){
 }
 
 // RST instructions
+static inline void rst_0(CPU *cpu){ rst_helper(cpu,0x00);}
 static inline void rst_1(CPU *cpu){ rst_helper(cpu,0x08);}
-static inline void rst_2(CPU *cpu){ rst_helper(cpu,0x18);}
-static inline void rst_3(CPU *cpu){ rst_helper(cpu,0x28);}
-static inline void rst_4(CPU *cpu){ rst_helper(cpu,0x38);}
+static inline void rst_2(CPU *cpu){ rst_helper(cpu,0x10);}
+static inline void rst_3(CPU *cpu){ rst_helper(cpu,0x18);}
+static inline void rst_4(CPU *cpu){ rst_helper(cpu,0x20);}
+static inline void rst_5(CPU *cpu){ rst_helper(cpu,0x28);}
+static inline void rst_6(CPU *cpu){ rst_helper(cpu,0x30);}
+static inline void rst_7(CPU *cpu){ rst_helper(cpu,0x38);}
+
 
 // INC instructions
 static inline void inc_a(CPU *cpu)
@@ -907,6 +907,32 @@ static inline void and_a(CPU *cpu){  and_helper(cpu, cpu->AF.hi);}
 static inline void and_m(CPU *cpu){  and_helper(cpu, memory_read_8(cpu->p_memory,cpu->HL.val));}
 
 
+static inline void add_sp_s8(CPU *cpu)
+{
+    s8 offset = (s8)get_next_8(cpu);   
+    u16 prev = cpu->SP.val;
+    u16 result = prev + offset;
+
+    cpu->SP.val = result;
+
+    unset_flag(cpu, ZERO);
+    unset_flag(cpu, SUBTRACT);
+
+    u16 low_sum = (prev & 0xFF) + (u8)offset;
+
+    if (((prev & 0x0F) + ((u8)offset & 0x0F)) > 0x0F)
+        set_flag(cpu, HALF_CARRY);
+    else
+        unset_flag(cpu, HALF_CARRY);
+
+    if (low_sum > 0xFF)
+        set_flag(cpu, CARRY);
+    else
+        unset_flag(cpu, CARRY);
+}
+
+
+
 // or operation
 static inline void or_b(CPU *cpu){ or_helper(cpu, cpu->BC.hi);}
 static inline void or_c(CPU *cpu){ or_helper(cpu, cpu->BC.lo);}
@@ -1181,6 +1207,69 @@ static inline void sla_helper(CPU *cpu, u8 *val) {
     cpu->AF.lo |= (original & 0x80) ? CARRY : 0;
 }
 
+static inline void rl_helper(CPU *cpu, u8 *reg)
+{
+    u8 old = *reg;
+    u8 old_carry = flag_c(cpu) ? 1 : 0;
+
+    if (old & 0x80)
+        set_flag(cpu, CARRY);
+    else
+        unset_flag(cpu, CARRY);
+
+    *reg = (old << 1) | old_carry;
+
+    if (*reg == 0)
+        set_flag(cpu, ZERO);
+    else
+        unset_flag(cpu, ZERO);
+
+    unset_flag(cpu, SUBTRACT);
+    unset_flag(cpu, HALF_CARRY);
+}
+
+
+static inline void rlc_helper(CPU *cpu, u8 *reg)
+{
+    u8 old = *reg;
+    u8 bit7 = (old >> 7) & 1;
+
+    *reg = (old << 1) | bit7;
+
+    if (*reg == 0)
+        set_flag(cpu, ZERO);
+    else
+        unset_flag(cpu, ZERO);
+
+    unset_flag(cpu, SUBTRACT);
+    unset_flag(cpu, HALF_CARRY);
+
+    if (bit7)
+        set_flag(cpu, CARRY);
+    else
+        unset_flag(cpu, CARRY);
+}
+
+static inline void rrc_helper(CPU *cpu, u8 *reg)
+{
+    u8 old = *reg;
+    u8 bit0 = old & 1;
+
+    *reg = (old >> 1) | (bit0 << 7);
+
+    if (*reg == 0)
+        set_flag(cpu, ZERO);
+    else
+        unset_flag(cpu, ZERO);
+
+    unset_flag(cpu, SUBTRACT);
+    unset_flag(cpu, HALF_CARRY);
+
+    if (bit0)
+        set_flag(cpu, CARRY);
+    else
+        unset_flag(cpu, CARRY);
+}
 
 
 /* Opcode Functions Similar to Non prefixed ones */
@@ -1569,8 +1658,76 @@ static inline void sla_h(CPU *cpu){ sla_helper(cpu, &cpu->HL.hi); }
 static inline void sla_l(CPU *cpu){ sla_helper(cpu, &cpu->HL.lo); }
 static inline void sla_a(CPU *cpu){ sla_helper(cpu, &cpu->AF.hi); }
 
+// RL
+static inline void rl_b(CPU *cpu){ rl_helper(cpu, &cpu->BC.hi); }
+static inline void rl_c(CPU *cpu){ rl_helper(cpu, &cpu->BC.lo); }
+static inline void rl_d(CPU *cpu){ rl_helper(cpu, &cpu->DE.hi); }
+static inline void rl_e(CPU *cpu){ rl_helper(cpu, &cpu->DE.lo); }
+static inline void rl_h(CPU *cpu){ rl_helper(cpu, &cpu->HL.hi); }
+static inline void rl_l(CPU *cpu){ rl_helper(cpu, &cpu->HL.lo); }
+static inline void rl_a(CPU *cpu){ rl_helper(cpu, &cpu->AF.hi); }
+
+static inline void rl_hl(CPU *cpu)
+{
+    u16 addr = cpu->HL.val;
+    u8 val = memory_read_8(cpu->p_memory, addr);
+
+    rl_helper(cpu, &val);
+
+    memory_write(cpu->p_memory, addr, val);
+}
+
+
+static inline void rlc_b(CPU *cpu){ rlc_helper(cpu, &cpu->BC.hi); }
+static inline void rlc_c(CPU *cpu){ rlc_helper(cpu, &cpu->BC.lo); }
+static inline void rlc_d(CPU *cpu){ rlc_helper(cpu, &cpu->DE.hi); }
+static inline void rlc_e(CPU *cpu){ rlc_helper(cpu, &cpu->DE.lo); }
+static inline void rlc_h(CPU *cpu){ rlc_helper(cpu, &cpu->HL.hi); }
+static inline void rlc_l(CPU *cpu){ rlc_helper(cpu, &cpu->HL.lo); }
+static inline void rlc_a(CPU *cpu){ rlc_helper(cpu, &cpu->AF.hi); }
+
+static inline void rlc_hl(CPU *cpu)
+{
+    u16 addr = cpu->HL.val;
+    u8 val = memory_read_8(cpu->p_memory, addr);
+
+    rlc_helper(cpu, &val);
+
+    memory_write(cpu->p_memory, addr, val);
+}
+
+static inline void rrc_b(CPU *cpu){ rrc_helper(cpu, &cpu->BC.hi); }
+static inline void rrc_c(CPU *cpu){ rrc_helper(cpu, &cpu->BC.lo); }
+static inline void rrc_d(CPU *cpu){ rrc_helper(cpu, &cpu->DE.hi); }
+static inline void rrc_e(CPU *cpu){ rrc_helper(cpu, &cpu->DE.lo); }
+static inline void rrc_h(CPU *cpu){ rrc_helper(cpu, &cpu->HL.hi); }
+static inline void rrc_l(CPU *cpu){ rrc_helper(cpu, &cpu->HL.lo); }
+static inline void rrc_a(CPU *cpu){ rrc_helper(cpu, &cpu->AF.hi); }
+
+static inline void rrc_hl(CPU *cpu)
+{
+    u16 addr = cpu->HL.val;
+    u8 val = memory_read_8(cpu->p_memory, addr);
+
+    rrc_helper(cpu, &val);
+
+    memory_write(cpu->p_memory, addr, val);
+}
+
+
+
+
 
 static Opcode prefixed_opcodes[256]={
+    [0x08] = {"RRC B",    2, &rrc_b},
+    [0x09] = {"RRC C",    2, &rrc_c},
+    [0x0A] = {"RRC D",    2, &rrc_d},
+    [0x0B] = {"RRC E",    2, &rrc_e},
+    [0x0C] = {"RRC H",    2, &rrc_h},
+    [0x0D] = {"RRC L",    2, &rrc_l},
+    [0x0E] = {"RRC (HL)", 4, &rrc_hl},
+    [0x0F] = {"RRC A",    2, &rrc_a},
+
     [0x38] = {"SRL B", 2, &srl_b},
     [0x39] = {"SRL C", 2, &srl_c},
     [0x3A] = {"SRL D", 2, &srl_d},
@@ -1580,6 +1737,7 @@ static Opcode prefixed_opcodes[256]={
     [0x3E] = {"SRL (HL)", 2, &srl_m},
     [0x3F] = {"SRL A", 2, &srl_a},
 
+
     [0x18] = {"RR B", 2, &rr_b},
     [0x19] = {"RR C", 2, &rr_c},
     [0x1A] = {"RR D", 2, &rr_d},
@@ -1588,6 +1746,16 @@ static Opcode prefixed_opcodes[256]={
     [0x1D] = {"RR L", 2, &rr_l},
     [0x1E] = {"RR (HL)", 2, &rr_m},
     [0x1F] = {"RR a", 2, &rr_a},
+
+    [0x10] = {"RL B",    2, &rl_b},
+    [0x11] = {"RL C",    2, &rl_c},
+    [0x12] = {"RL D",    2, &rl_d},
+    [0x13] = {"RL E",    2, &rl_e},
+    [0x14] = {"RL H",    2, &rl_h},
+    [0x15] = {"RL L",    2, &rl_l},
+    [0x16] = {"RL (HL)", 4, &rl_hl},
+    [0x17] = {"RL A",    2, &rl_a},
+
 
     [0x40] = {"BIT 0,B", 2, &bit_0_b},
     [0x41] = {"BIT 0,C", 2, &bit_0_c},
@@ -1840,6 +2008,14 @@ static Opcode prefixed_opcodes[256]={
     [0x26] = {"SLA (HL)", 4, &sla_hl}, 
     [0x27] = {"SLA A", 2, &sla_a},
 
+    [0x00] = {"RLC B",    2, &rlc_b},
+    [0x01] = {"RLC C",    2, &rlc_c},
+    [0x02] = {"RLC D",    2, &rlc_d},
+    [0x03] = {"RLC E",    2, &rlc_e},
+    [0x04] = {"RLC H",    2, &rlc_h},
+    [0x05] = {"RLC L",    2, &rlc_l},
+    [0x06] = {"RLC (HL)", 4, &rlc_hl},
+    [0x07] = {"RLC A",    2, &rlc_a},
 };
 
 static inline void cb_helper(CPU *cpu){
@@ -1895,10 +2071,14 @@ static Opcode opcodes[256]= {
     [0x11] = {"LD DE, d16", 3,  &ld_de_16},
     [0x01] = {"LD BC, d16", 3,  &ld_bc_16},
     
+    [0xc7] = {"RST 0", 4, &rst_0},
     [0xcf] = {"RST 1", 4, &rst_1},
-    [0xdf] = {"RST 2", 4, &rst_2},
-    [0xef] = {"RST 3", 4, &rst_3},
-    [0xff] = {"RST 4", 4, &rst_4},
+    [0xd7] = {"RST 2", 4, &rst_2},
+    [0xdf] = {"RST 3", 4, &rst_3},
+    [0xe7] = {"RST 4", 4, &rst_4},
+    [0xef] = {"RST 5", 4, &rst_5},
+    [0xf7] = {"RST 6", 4, &rst_6},
+    [0xff] = {"RST 7", 4, &rst_7},
 
     [0x3c] = {"INC A", 1, &inc_a},
     [0x2c] = {"INC L", 1, &inc_l},
@@ -1918,6 +2098,7 @@ static Opcode opcodes[256]= {
     [0x1B] = {"DEC DE", 2, &dec_de},
     [0x2B] = {"DEC HL", 2, &dec_hl},
     [0x3B] = {"DEC SP", 2, &dec_sp},
+
 
     [0xc9] = {"RET", 4, &ret},
     [0xc0] = {"RET NZ", 0, &ret_nz},
@@ -2034,6 +2215,9 @@ static Opcode opcodes[256]= {
     [0x85] = {"ADD L", 1, &add_a_l},
     [0x86] = {"ADD M", 2, &add_a_m},
     [0x87] = {"ADD A", 1, &add_a_a},
+
+    [0xE8] = {"ADD SP, s8", 4, &add_sp_s8},
+
     [0x88] = {"ADc B", 1, &adc_b},
     [0x89] = {"ADc C", 1, &adc_c},
     [0x8A] = {"ADc D", 1, &adc_d},
@@ -2218,7 +2402,10 @@ int step_cpu(CPU *cpu){
         cpu->schedule_ei --;
         if(cpu->schedule_ei == 0) cpu->IME = 1;
     }
+
+    #ifdef DEBUG
     printf("INSTRUCTION TOOK %d\n",cpu->cycles - prev_cycles);
+    #endif
         
     return (cpu->cycles - prev_cycles);
 }
