@@ -17,7 +17,7 @@ typedef uint16_t u16;
 // #define DEBUG // print logs to console
 // #define LOG // Log to an output file "logging.txt"
 #define ITERATION 999999999
-// #define LOG_BUFFER_SIZE 1000
+#define LOG_BUFFER_SIZE 1000
 #define SCREEN_WIDTH  160
 #define SCREEN_HEIGHT  144
 

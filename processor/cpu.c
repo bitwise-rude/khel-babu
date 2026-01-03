@@ -374,7 +374,6 @@ static inline void call_a16(CPU *cpu){  call_helper(cpu);   }
 static inline void call_nz_a16(CPU *cpu){
     if(!flag_z(cpu)){
         call_helper(cpu);
-        cpu->cycles += 6;
         return;
     }
     cpu->PC.val +=2; 
@@ -384,7 +383,6 @@ static inline void call_nz_a16(CPU *cpu){
 static inline void call_nc_a16(CPU *cpu){
     if(!flag_c(cpu)){
         call_helper(cpu);
-        cpu->cycles += 6;
         return;
     }
     cpu->PC.val +=2; 
@@ -394,7 +392,6 @@ static inline void call_nc_a16(CPU *cpu){
 static inline void call_z_a16(CPU *cpu){
     if(flag_z(cpu)){
         call_helper(cpu);
-        cpu->cycles += 6;
         return;
     }
     cpu->PC.val +=2; 
@@ -404,7 +401,6 @@ static inline void call_z_a16(CPU *cpu){
 static inline void call_c_a16(CPU *cpu){
     if(flag_c(cpu)){
         call_helper(cpu);
-        cpu->cycles += 6;
         return;
     }
     cpu->PC.val +=2; 
@@ -1143,6 +1139,28 @@ static inline void srl_helper(CPU *cpu, u8 *reg){
     unset_flag(cpu,SUBTRACT);
 }
 
+static inline void rrc_helper(CPU *cpu, u8 *reg)
+{
+    u8 old = *reg;
+    u8 bit0 = old & 1;
+
+    *reg = (old >> 1) | (bit0 << 7);
+
+    if (*reg == 0)
+        set_flag(cpu, ZERO);
+    else
+        unset_flag(cpu, ZERO);
+
+    unset_flag(cpu, SUBTRACT);
+    unset_flag(cpu, HALF_CARRY);
+
+    if (bit0)
+        set_flag(cpu, CARRY);
+    else
+        unset_flag(cpu, CARRY);
+}
+
+
 static inline void rr_helper(CPU *cpu, u8 *reg){
     u8 val = *reg;
     u8 old_carry = flag_c(cpu) ? 1 : 0;
@@ -1250,12 +1268,13 @@ static inline void rlc_helper(CPU *cpu, u8 *reg)
         unset_flag(cpu, CARRY);
 }
 
-static inline void rrc_helper(CPU *cpu, u8 *reg)
+static inline void sra_helper(CPU *cpu, u8 *reg)
 {
     u8 old = *reg;
     u8 bit0 = old & 1;
+    u8 bit7 = old & 0x80;
 
-    *reg = (old >> 1) | (bit0 << 7);
+    *reg = (old >> 1) | bit7;
 
     if (*reg == 0)
         set_flag(cpu, ZERO);
@@ -1273,6 +1292,25 @@ static inline void rrc_helper(CPU *cpu, u8 *reg)
 
 
 /* Opcode Functions Similar to Non prefixed ones */
+static inline void sra_b(CPU *cpu){ sra_helper(cpu, &cpu->BC.hi); }
+static inline void sra_c(CPU *cpu){ sra_helper(cpu, &cpu->BC.lo); }
+static inline void sra_d(CPU *cpu){ sra_helper(cpu, &cpu->DE.hi); }
+static inline void sra_e(CPU *cpu){ sra_helper(cpu, &cpu->DE.lo); }
+static inline void sra_h(CPU *cpu){ sra_helper(cpu, &cpu->HL.hi); }
+static inline void sra_l(CPU *cpu){ sra_helper(cpu, &cpu->HL.lo); }
+static inline void sra_a(CPU *cpu){ sra_helper(cpu, &cpu->AF.hi); }
+
+static inline void sra_hl(CPU *cpu)
+{
+    u16 addr = cpu->HL.val;
+    u8 val = memory_read_8(cpu->p_memory, addr);
+
+    sra_helper(cpu, &val);
+
+    memory_write(cpu->p_memory, addr, val);
+}
+
+
 static inline void srl_b(CPU *cpu){ srl_helper(cpu, &cpu->BC.hi);}
 static inline void srl_c(CPU *cpu){ srl_helper(cpu, &cpu->BC.lo);}
 static inline void srl_d(CPU *cpu){ srl_helper(cpu, &cpu->DE.hi);}
@@ -1658,6 +1696,26 @@ static inline void sla_h(CPU *cpu){ sla_helper(cpu, &cpu->HL.hi); }
 static inline void sla_l(CPU *cpu){ sla_helper(cpu, &cpu->HL.lo); }
 static inline void sla_a(CPU *cpu){ sla_helper(cpu, &cpu->AF.hi); }
 
+//sra
+static inline void rrc_b(CPU *cpu){ rrc_helper(cpu, &cpu->BC.hi); }
+static inline void rrc_c(CPU *cpu){ rrc_helper(cpu, &cpu->BC.lo); }
+static inline void rrc_d(CPU *cpu){ rrc_helper(cpu, &cpu->DE.hi); }
+static inline void rrc_e(CPU *cpu){ rrc_helper(cpu, &cpu->DE.lo); }
+static inline void rrc_h(CPU *cpu){ rrc_helper(cpu, &cpu->HL.hi); }
+static inline void rrc_l(CPU *cpu){ rrc_helper(cpu, &cpu->HL.lo); }
+static inline void rrc_a(CPU *cpu){ rrc_helper(cpu, &cpu->AF.hi); }
+
+static inline void rrc_hl(CPU *cpu)
+{
+    u16 addr = cpu->HL.val;
+    u8 val = memory_read_8(cpu->p_memory, addr);
+
+    rrc_helper(cpu, &val);
+
+    memory_write(cpu->p_memory, addr, val);
+}
+
+
 // RL
 static inline void rl_b(CPU *cpu){ rl_helper(cpu, &cpu->BC.hi); }
 static inline void rl_c(CPU *cpu){ rl_helper(cpu, &cpu->BC.lo); }
@@ -1696,27 +1754,6 @@ static inline void rlc_hl(CPU *cpu)
     memory_write(cpu->p_memory, addr, val);
 }
 
-static inline void rrc_b(CPU *cpu){ rrc_helper(cpu, &cpu->BC.hi); }
-static inline void rrc_c(CPU *cpu){ rrc_helper(cpu, &cpu->BC.lo); }
-static inline void rrc_d(CPU *cpu){ rrc_helper(cpu, &cpu->DE.hi); }
-static inline void rrc_e(CPU *cpu){ rrc_helper(cpu, &cpu->DE.lo); }
-static inline void rrc_h(CPU *cpu){ rrc_helper(cpu, &cpu->HL.hi); }
-static inline void rrc_l(CPU *cpu){ rrc_helper(cpu, &cpu->HL.lo); }
-static inline void rrc_a(CPU *cpu){ rrc_helper(cpu, &cpu->AF.hi); }
-
-static inline void rrc_hl(CPU *cpu)
-{
-    u16 addr = cpu->HL.val;
-    u8 val = memory_read_8(cpu->p_memory, addr);
-
-    rrc_helper(cpu, &val);
-
-    memory_write(cpu->p_memory, addr, val);
-}
-
-
-
-
 
 static Opcode prefixed_opcodes[256]={
     [0x08] = {"RRC B",    2, &rrc_b},
@@ -1734,7 +1771,7 @@ static Opcode prefixed_opcodes[256]={
     [0x3B] = {"SRL E", 2, &srl_e},
     [0x3C] = {"SRL H", 2, &srl_h},
     [0x3D] = {"SRL L", 2, &srl_l},
-    [0x3E] = {"SRL (HL)", 2, &srl_m},
+    [0x3E] = {"SRL (HL)", 4, &srl_m},
     [0x3F] = {"SRL A", 2, &srl_a},
 
 
@@ -1744,7 +1781,7 @@ static Opcode prefixed_opcodes[256]={
     [0x1B] = {"RR E", 2, &rr_e},
     [0x1C] = {"RR H", 2, &rr_h},
     [0x1D] = {"RR L", 2, &rr_l},
-    [0x1E] = {"RR (HL)", 2, &rr_m},
+    [0x1E] = {"RR (HL)", 4, &rr_m},
     [0x1F] = {"RR a", 2, &rr_a},
 
     [0x10] = {"RL B",    2, &rl_b},
@@ -1755,6 +1792,16 @@ static Opcode prefixed_opcodes[256]={
     [0x15] = {"RL L",    2, &rl_l},
     [0x16] = {"RL (HL)", 4, &rl_hl},
     [0x17] = {"RL A",    2, &rl_a},
+
+    [0x28] = {"SRA B",    2, &sra_b},
+    [0x29] = {"SRA C",    2, &sra_c},
+    [0x2A] = {"SRA D",    2, &sra_d},
+    [0x2B] = {"SRA E",    2, &sra_e},
+    [0x2C] = {"SRA H",    2, &sra_h},
+    [0x2D] = {"SRA L",    2, &sra_l},
+    [0x2E] = {"SRA (HL)", 4, &sra_hl},
+    [0x2F] = {"SRA A",    2, &sra_a},
+
 
 
     [0x40] = {"BIT 0,B", 2, &bit_0_b},
@@ -1836,7 +1883,7 @@ static Opcode prefixed_opcodes[256]={
     [0x83] = {"RES 0,E", 2, &res_0_e},
     [0x84] = {"RES 0,H", 2, &res_0_h},
     [0x85] = {"RES 0,L", 2, &res_0_l},
-    [0x86] = {"RES 0,(HL)", 3, &res_0_hl},
+    [0x86] = {"RES 0,(HL)", 4, &res_0_hl},
     [0x87] = {"RES 0,A", 2, &res_0_a},
 
     // RES 1
@@ -1846,7 +1893,7 @@ static Opcode prefixed_opcodes[256]={
     [0x8B] = {"RES 1,E", 2, &res_1_e},
     [0x8C] = {"RES 1,H", 2, &res_1_h},
     [0x8D] = {"RES 1,L", 2, &res_1_l},
-    [0x8E] = {"RES 1,(HL)", 3, &res_1_hl},
+    [0x8E] = {"RES 1,(HL)", 4, &res_1_hl},
     [0x8F] = {"RES 1,A", 2, &res_1_a},
 
     // RES 2
@@ -1856,7 +1903,7 @@ static Opcode prefixed_opcodes[256]={
     [0x93] = {"RES 2,E", 2, &res_2_e},
     [0x94] = {"RES 2,H", 2, &res_2_h},
     [0x95] = {"RES 2,L", 2, &res_2_l},
-    [0x96] = {"RES 2,(HL)", 3, &res_2_hl},
+    [0x96] = {"RES 2,(HL)", 4, &res_2_hl},
     [0x97] = {"RES 2,A", 2, &res_2_a},
 
     // RES 3
@@ -1866,7 +1913,7 @@ static Opcode prefixed_opcodes[256]={
     [0x9B] = {"RES 3,E", 2, &res_3_e},
     [0x9C] = {"RES 3,H", 2, &res_3_h},
     [0x9D] = {"RES 3,L", 2, &res_3_l},
-    [0x9E] = {"RES 3,(HL)", 3, &res_3_hl},
+    [0x9E] = {"RES 3,(HL)", 4, &res_3_hl},
     [0x9F] = {"RES 3,A", 2, &res_3_a},
 
     // RES 4
@@ -1876,7 +1923,7 @@ static Opcode prefixed_opcodes[256]={
     [0xA3] = {"RES 4,E", 2, &res_4_e},
     [0xA4] = {"RES 4,H", 2, &res_4_h},
     [0xA5] = {"RES 4,L", 2, &res_4_l},
-    [0xA6] = {"RES 4,(HL)", 3, &res_4_hl},
+    [0xA6] = {"RES 4,(HL)", 4, &res_4_hl},
     [0xA7] = {"RES 4,A", 2, &res_4_a},
 
     // RES 5
@@ -1886,7 +1933,7 @@ static Opcode prefixed_opcodes[256]={
     [0xAB] = {"RES 5,E", 2, &res_5_e},
     [0xAC] = {"RES 5,H", 2, &res_5_h},
     [0xAD] = {"RES 5,L", 2, &res_5_l},
-    [0xAE] = {"RES 5,(HL)", 3, &res_5_hl},
+    [0xAE] = {"RES 5,(HL)", 4, &res_5_hl},
     [0xAF] = {"RES 5,A", 2, &res_5_a},
 
     // RES 6
@@ -1896,7 +1943,7 @@ static Opcode prefixed_opcodes[256]={
     [0xB3] = {"RES 6,E", 2, &res_6_e},
     [0xB4] = {"RES 6,H", 2, &res_6_h},
     [0xB5] = {"RES 6,L", 2, &res_6_l},
-    [0xB6] = {"RES 6,(HL)", 3, &res_6_hl},
+    [0xB6] = {"RES 6,(HL)", 4, &res_6_hl},
     [0xB7] = {"RES 6,A", 2, &res_6_a},
 
     // RES 7
@@ -1906,7 +1953,7 @@ static Opcode prefixed_opcodes[256]={
     [0xBB] = {"RES 7,E", 2, &res_7_e},
     [0xBC] = {"RES 7,H", 2, &res_7_h},
     [0xBD] = {"RES 7,L", 2, &res_7_l},
-    [0xBE] = {"RES 7,(HL)", 3, &res_7_hl},
+    [0xBE] = {"RES 7,(HL)", 4, &res_7_hl},
     [0xBF] = {"RES 7,A", 2, &res_7_a},
 
     // SET 0
@@ -1916,7 +1963,7 @@ static Opcode prefixed_opcodes[256]={
     [0xC3] = {"SET 0,E", 2, &set_0_e},
     [0xC4] = {"SET 0,H", 2, &set_0_h},
     [0xC5] = {"SET 0,L", 2, &set_0_l},
-    [0xC6] = {"SET 0,(HL)", 3, &set_0_hl},
+    [0xC6] = {"SET 0,(HL)", 4, &set_0_hl},
     [0xC7] = {"SET 0,A", 2, &set_0_a},
 
     // SET 1
@@ -1926,7 +1973,7 @@ static Opcode prefixed_opcodes[256]={
     [0xCB] = {"SET 1,E", 2, &set_1_e},
     [0xCC] = {"SET 1,H", 2, &set_1_h},
     [0xCD] = {"SET 1,L", 2, &set_1_l},
-    [0xCE] = {"SET 1,(HL)", 3, &set_1_hl},
+    [0xCE] = {"SET 1,(HL)", 4, &set_1_hl},
     [0xCF] = {"SET 1,A", 2, &set_1_a},
 
     // SET 2
@@ -1936,7 +1983,7 @@ static Opcode prefixed_opcodes[256]={
     [0xD3] = {"SET 2,E", 2, &set_2_e},
     [0xD4] = {"SET 2,H", 2, &set_2_h},
     [0xD5] = {"SET 2,L", 2, &set_2_l},
-    [0xD6] = {"SET 2,(HL)", 3, &set_2_hl},
+    [0xD6] = {"SET 2,(HL)", 4, &set_2_hl},
     [0xD7] = {"SET 2,A", 2, &set_2_a},
 
     // SET 3
@@ -1946,7 +1993,7 @@ static Opcode prefixed_opcodes[256]={
     [0xDB] = {"SET 3,E", 2, &set_3_e},
     [0xDC] = {"SET 3,H", 2, &set_3_h},
     [0xDD] = {"SET 3,L", 2, &set_3_l},
-    [0xDE] = {"SET 3,(HL)", 3, &set_3_hl},
+    [0xDE] = {"SET 3,(HL)",4, &set_3_hl},
     [0xDF] = {"SET 3,A", 2, &set_3_a},
 
     // SET 4
@@ -1956,7 +2003,7 @@ static Opcode prefixed_opcodes[256]={
     [0xE3] = {"SET 4,E", 2, &set_4_e},
     [0xE4] = {"SET 4,H", 2, &set_4_h},
     [0xE5] = {"SET 4,L", 2, &set_4_l},
-    [0xE6] = {"SET 4,(HL)", 3, &set_4_hl},
+    [0xE6] = {"SET 4,(HL)", 4, &set_4_hl},
     [0xE7] = {"SET 4,A", 2, &set_4_a},
 
     // SET 5
@@ -1966,7 +2013,7 @@ static Opcode prefixed_opcodes[256]={
     [0xEB] = {"SET 5,E", 2, &set_5_e},
     [0xEC] = {"SET 5,H", 2, &set_5_h},
     [0xED] = {"SET 5,L", 2, &set_5_l},
-    [0xEE] = {"SET 5,(HL)", 3, &set_5_hl},
+    [0xEE] = {"SET 5,(HL)", 4, &set_5_hl},
     [0xEF] = {"SET 5,A", 2, &set_5_a},
 
     // SET 6
@@ -1976,7 +2023,7 @@ static Opcode prefixed_opcodes[256]={
     [0xF3] = {"SET 6,E", 2, &set_6_e},
     [0xF4] = {"SET 6,H", 2, &set_6_h},
     [0xF5] = {"SET 6,L", 2, &set_6_l},
-    [0xF6] = {"SET 6,(HL)", 3, &set_6_hl},
+    [0xF6] = {"SET 6,(HL)", 4, &set_6_hl},
     [0xF7] = {"SET 6,A", 2, &set_6_a},
 
     // SET 7
@@ -1986,7 +2033,7 @@ static Opcode prefixed_opcodes[256]={
     [0xFB] = {"SET 7,E", 2, &set_7_e},
     [0xFC] = {"SET 7,H", 2, &set_7_h},
     [0xFD] = {"SET 7,L", 2, &set_7_l},
-    [0xFE] = {"SET 7,(HL)", 3, &set_7_hl},
+    [0xFE] = {"SET 7,(HL)", 4, &set_7_hl},
     [0xFF] = {"SET 7,A", 2, &set_7_a},
 
 
@@ -2038,13 +2085,25 @@ static inline void cb_helper(CPU *cpu){
 }
 
 // misc instructions
-static inline void cpl(CPU *cpu) { cpu->AF.hi = ~cpu->AF.hi;}
-static inline void ccf(CPU *cpu)
- {  if (flag_c(cpu) == 1)
-        unset_flag(cpu,CARRY);
-    else 
-        set_flag(cpu, CARRY);
+static inline void cpl(CPU *cpu)
+{
+    cpu->AF.hi = ~cpu->AF.hi;
+
+    set_flag(cpu, SUBTRACT);
+    set_flag(cpu, HALF_CARRY);
 }
+
+static inline void ccf(CPU *cpu)
+{
+    if (flag_c(cpu))
+        unset_flag(cpu, CARRY);
+    else
+        set_flag(cpu, CARRY);
+
+    unset_flag(cpu, SUBTRACT);
+    unset_flag(cpu, HALF_CARRY);
+}
+
 
 static Opcode opcodes[256]= {
     [0xCB] = {"CB Prefixed", 0, &cb_helper},
@@ -2185,7 +2244,7 @@ static Opcode opcodes[256]= {
     [0x06] = {"LD B, d8", 2, &ld_b_d8},
     [0x16] = {"LD D, d8", 2, &ld_d_d8},
     [0x26] = {"LD H, d8", 2, &ld_h_d8},
-    [0x36] = {"LD (HL), d8", 2, &ld_m_d8},
+    [0x36] = {"LD (HL), d8", 3, &ld_m_d8},
 
     [0x0A] = {"LD A, (BC)", 2, &ld_a_bc},
     [0x1A] = {"LD A, (DE)", 2, &ld_a_de},
