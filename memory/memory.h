@@ -38,6 +38,9 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr, const bool is_writi
         return &p_mem->p_cartidge->rom[addr];
     }
 
+    // TODO: implement cotroller keypads now return ff
+
+
     //DMA
     if (addr == 0xFF46 && is_writing == true){
         printf("DMA\n");
@@ -153,6 +156,10 @@ static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
         printf("READING ");
     #endif
 
+
+    if (addr == 0xFF00){
+        return 0xFF; // TODO fir joypad
+    }
 
     if (addr == 0xFF44){
         #ifdef LOG

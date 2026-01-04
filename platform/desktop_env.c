@@ -9,176 +9,176 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 
-#define FILE_TO_LOAD "test_roms/tetris.gb"
-
+#define FILE_TO_LOAD "test_roms/dmg-acid2.gb"
 #define SCALE 4
-#define SCALE 4
-#define FPS 60
-#define FRAME_TIME_MS (1000 / FPS)
 
-// testing remove this TODO
 static const uint8_t dmg_palette[4][3] = {
-    {255, 255, 255}, 
-    {170, 170, 170},
-    { 85,  85,  85}, 
-    {  0,   0,   0} 
+    {155, 188, 15},  // Lightest
+    {139, 172, 15},  // Light
+    { 48,  98, 48},  // Dark
+    { 15,  56, 15}   // Darkest
 };
-
 
 struct DrawingContext {
     SDL_Window   *window;
     SDL_Renderer *renderer;
-    SDL_Texture  *texture;
+    SDL_Texture  *texture;  
 };
 
-
-void screen_event_loop(struct DrawingContext *ctx) {
+void screen_event_loop(struct DrawingContext *context) {
     SDL_Event e;
-    while (SDL_PollEvent(&e)) {
-        if (e.type == SDL_QUIT ||
-           (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)) {
-            cleanup_screen(ctx);
+    
+    while (SDL_PollEvent(&e) != 0) {
+        if (e.type == SDL_QUIT) {
+            printf("Window closed. Signalling quit.\n");
+            cleanup_screen(context);
             exit(0);
+        }
+
+        if (e.type == SDL_KEYDOWN) {
+            if (e.key.keysym.sym == SDLK_ESCAPE) {
+                printf("Escape pressed. Signalling quit.\n");
+                cleanup_screen(context);
+                exit(0);
+            }
         }
     }
 }
 
-
-void cleanup_screen(struct DrawingContext *ctx) {
-    if (!ctx) return;
-
-    if (ctx->texture)  SDL_DestroyTexture(ctx->texture);
-    if (ctx->renderer) SDL_DestroyRenderer(ctx->renderer);
-    if (ctx->window)   SDL_DestroyWindow(ctx->window);
-
+void cleanup_screen(struct DrawingContext *context) {
+    if (context->texture != NULL) {
+        SDL_DestroyTexture(context->texture);
+    }
+    if (context->renderer != NULL) {
+        SDL_DestroyRenderer(context->renderer);
+    }
+    if (context->window != NULL) {
+        SDL_DestroyWindow(context->window);
+    }
     SDL_Quit();
-    free(ctx);
+    free(context);
 }
 
-struct DrawingContext *make_screen(void) {
+struct DrawingContext *make_screen() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        fprintf(stderr, "SDL init failed: %s\n", SDL_GetError());
+        printf("[ERROR] SDL could not initialize! SDL Error: %s\n", SDL_GetError());
         exit(1);
     }
+    
+    struct DrawingContext *context = (struct DrawingContext *) malloc(sizeof(struct DrawingContext));
+    context->texture = NULL;
 
-    struct DrawingContext *ctx = calloc(1, sizeof(*ctx));
-
-    ctx->window = SDL_CreateWindow(
+    context->window = SDL_CreateWindow(
         "Khel-Babu",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_UNDEFINED,
+        SDL_WINDOWPOS_UNDEFINED,
         SCREEN_WIDTH * SCALE,
         SCREEN_HEIGHT * SCALE,
         SDL_WINDOW_SHOWN
     );
 
-    ctx->renderer = SDL_CreateRenderer(
-        ctx->window,
+    if (context->window == NULL) {
+        printf("[ERROR] Window could not be created! SDL Error: %s\n", SDL_GetError());
+        SDL_Quit(); 
+        exit(1);
+    }
+
+    context->renderer = SDL_CreateRenderer(
+        context->window, 
         -1,
         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
     );
 
-    ctx->texture = SDL_CreateTexture(
-        ctx->renderer,
+    if (context->renderer == NULL) {
+        printf("[ERROR] Renderer could not be created! SDL Error: %s\n", SDL_GetError());
+        SDL_DestroyWindow(context->window);
+        SDL_Quit();
+        exit(1);
+    }
+
+    context->texture = SDL_CreateTexture(
+        context->renderer,
         SDL_PIXELFORMAT_RGB24,
         SDL_TEXTUREACCESS_STREAMING,
         SCREEN_WIDTH,
         SCREEN_HEIGHT
     );
 
-    if (!ctx->window || !ctx->renderer || !ctx->texture) {
-        fprintf(stderr, "SDL creation failed: %s\n", SDL_GetError());
-        cleanup_screen(ctx);
+    if (context->texture == NULL) {
+        printf("[ERROR] Texture could not be created! SDL Error: %s\n", SDL_GetError());
+        cleanup_screen(context);
         exit(1);
     }
 
-    return ctx;
+    return context;
 }
-
-
 
 /* Uses the OS to read a rom (.bin) file and return the contents */
 Cartridge load_cartridge() {
-	FILE *fp = fopen(FILE_TO_LOAD, "rb");
-	Cartridge cartridge = {.rom = NULL, .length = 0};
+    FILE *fp = fopen(FILE_TO_LOAD, "rb");
+    Cartridge cartridge = {.rom = NULL, .length = 0};
 
-	if (fp == NULL) {
-		perror("Error in opening the file");
-		return cartridge;
-	}
+    if (fp == NULL) {
+        perror("Error in opening the file");
+        return cartridge;
+    }
 
-	if (fseek(fp, 0L, SEEK_END) != 0){
-		perror("Error seeking to the end of the file ");
-		fclose(fp);
-		return cartridge;
-	}
+    if (fseek(fp, 0L, SEEK_END) != 0) {
+        perror("Error seeking to the end of the file");
+        fclose(fp);
+        return cartridge;
+    }
 
-	long size = ftell(fp);
+    long size = ftell(fp);
 
-	if (size == -1){
-		perror("Error getting file size");
-		fclose(fp);
-		return cartridge;
-	}
+    if (size == -1) {
+        perror("Error getting file size");
+        fclose(fp);
+        return cartridge;
+    }
 
+    if (fseek(fp, 0L, SEEK_SET) != 0) {
+        perror("Error seeking to the beginning");
+        fclose(fp);
+        return cartridge;
+    }
 
-	if (fseek(fp, 0L,  SEEK_SET) != 0) {
-		perror("Error seeking to the end");
-		fclose(fp);
-		return cartridge;
-	}
+    u8 *pcartridge = (u8 *) malloc(size);
+    if (pcartridge == NULL) {
+        perror("Error allocating memory");
+        fclose(fp);
+        return cartridge;
+    }
 
-	u8 *pcartidge = (u8 *) malloc(size);
-	if(pcartidge == NULL){
-		perror("Error allocating memory");
-		fclose(fp);
-		return cartridge;
-	}
+    size_t elements_read = fread(pcartridge, 1, size, fp);
+    fclose(fp);
 
-	size_t elements_read = fread(pcartidge, 1, size, fp);
-	fclose(fp);
+    if ((long) elements_read != size) {
+        perror("Some error occurred while reading the file");
+        free(pcartridge);
+        return cartridge;
+    }
 
-	if((long) elements_read != size){
-		perror("Some error occured while reading the file");
-		free(pcartidge);
-		return cartridge;
-	}
-
-	return (Cartridge) {.rom = pcartidge, .length=elements_read};
-		 
+    return (Cartridge) {.rom = pcartridge, .length = elements_read};
 }
 
-void present_framebuffer(
-    struct DrawingContext *ctx,
-    u8 framebuffer[144][160]
-) {
-    static uint8_t pixels[144][160][3];
+void present_framebuffer(struct DrawingContext *ctx, u8 framebuffer[144][160]) {
+    static uint8_t pixels[SCREEN_HEIGHT * SCREEN_WIDTH * 3];
 
-    /* Convert palette indices → RGB */
-    for (int y = 0; y < 144; y++) {
-        for (int x = 0; x < 160; x++) {
-            u8 c = framebuffer[y][x] & 3;
-            pixels[y][x][0] = dmg_palette[c][0];
-            pixels[y][x][1] = dmg_palette[c][1];
-            pixels[y][x][2] = dmg_palette[c][2];
+    for (int y = 0; y < SCREEN_HEIGHT; y++) {
+        for (int x = 0; x < SCREEN_WIDTH; x++) {
+            u8 color = framebuffer[y][x] & 3;
+            const u8 *rgb = dmg_palette[color];
+            
+            int idx = (y * SCREEN_WIDTH + x) * 3;
+            pixels[idx + 0] = rgb[0];
+            pixels[idx + 1] = rgb[1];
+            pixels[idx + 2] = rgb[2];
         }
     }
 
-    SDL_UpdateTexture(
-        ctx->texture,
-        NULL,
-        pixels,
-        SCREEN_WIDTH * 3
-    );
-
+    SDL_UpdateTexture(ctx->texture, NULL, pixels, SCREEN_WIDTH * 3);
     SDL_RenderClear(ctx->renderer);
     SDL_RenderCopy(ctx->renderer, ctx->texture, NULL, NULL);
     SDL_RenderPresent(ctx->renderer);
-
-    /* Frame pacing */
-    static Uint32 last = 0;
-    Uint32 now = SDL_GetTicks();
-    if (now - last < FRAME_TIME_MS)
-        SDL_Delay(FRAME_TIME_MS - (now - last));
-    last = SDL_GetTicks();
 }

@@ -60,6 +60,7 @@ int main(){
 	int cpu_cycles=0, int_cycles=0;
 
 	for (int i = 0; i<=ITERATION; i++){
+		
 		cpu_cycles = step_cpu(&cpu);
 		timer_step(&tm,cpu_cycles);
 		step_ppu(&ppu,cpu_cycles);

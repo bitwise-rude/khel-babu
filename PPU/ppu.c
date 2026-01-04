@@ -15,15 +15,12 @@
 #define WY   0xFF4A
 #define WX   0xFF4B
 
-
 #define OAM_BASE 0xFE00
 
 #define TILE_MAP_0 0x9800
 #define TILE_MAP_1 0x9C00
 
-/* =========================
-   HELPERS
-   ========================= */
+
 
 static inline u8 bg_palette(PPU *ppu, u8 c) {
     u8 p = memory_read_8(ppu->p_mem, BGP);
@@ -35,23 +32,11 @@ static inline u8 obj_palette(PPU *ppu, u8 c, bool pal1) {
     return (p >> (c * 2)) & 3;
 }
 
-static inline u8 bg_palette_lookup(PPU *ppu, u8 color) {
-    u8 bgp = memory_read_8(ppu->p_mem, BGP);
-    return (bgp >> (color * 2)) & 0x03;
-}
-
-
-static inline void sync_ly(PPU *ppu) {
-    memory_write(ppu->p_mem, LY, ppu->ly);
-}
-
 static inline u8 get_lcdc(PPU *ppu) {
     return memory_read_8(ppu->p_mem, LCDC);
 }
 
-/* =========================
-   STAT
-   ========================= */
+
 
 static void stat_update(PPU *ppu) {
     u8 stat = memory_read_8(ppu->p_mem, STAT);
@@ -71,11 +56,12 @@ static void stat_check(PPU *ppu) {
     u8 stat = memory_read_8(ppu->p_mem, STAT);
     bool req = false;
 
-    if (ppu->mode == 0 && (stat & (1 << 3))) req = true;
-    if (ppu->mode == 1 && (stat & (1 << 4))) req = true;
-    if (ppu->mode == 2 && (stat & (1 << 5))) req = true;
-    if ((stat & (1 << 6)) && (stat & (1 << 2))) req = true;
+    if (ppu->mode == 0 && (stat & (1 << 3))) req = true;  // HBlank
+    if (ppu->mode == 1 && (stat & (1 << 4))) req = true;  // VBlank
+    if (ppu->mode == 2 && (stat & (1 << 5))) req = true;  // OAM
+    if ((stat & (1 << 6)) && (stat & (1 << 2))) req = true;  // LYC=LY
 
+    // rising edge is a bitch
     if (req && !ppu->stat_irq_line)
         request_interrupt(ppu->ih, LCD);
 
@@ -83,26 +69,8 @@ static void stat_check(PPU *ppu) {
 }
 
 
-static void stat_check_and_request(PPU *ppu) {
-    u8 stat = memory_read_8(ppu->p_mem, STAT);
-    bool req = false;
 
-    if (ppu->mode == 0 && (stat & (1 << 3))) req = true;
-    if (ppu->mode == 1 && (stat & (1 << 4))) req = true;
-    if (ppu->mode == 2 && (stat & (1 << 5))) req = true;
-    if ((stat & (1 << 6)) && (stat & (1 << 2))) req = true;
-
-    if (req && !ppu->stat_irq_line)
-        request_interrupt(ppu->ih, LCD);
-
-    ppu->stat_irq_line = req;
-}
-
-/* =========================
-   BACKGROUND + WINDOW
-   ========================= */
-
-   static void render_bg_window(PPU *ppu, u8 bg_line[160]) {
+static void render_bg_window(PPU *ppu, u8 bg_line[160]) {
     u8 lcdc = memory_read_8(ppu->p_mem, LCDC);
 
     bool bg_enable = lcdc & 1;
@@ -116,7 +84,6 @@ static void stat_check_and_request(PPU *ppu) {
     bool window_active = false;
 
     for (int x = 0; x < 160; x++) {
-
         u8 color = 0;
 
         if (bg_enable) {
@@ -168,24 +135,57 @@ static void stat_check_and_request(PPU *ppu) {
         ppu->window_line++;
 }
 
-
 static void render_sprites(PPU *ppu, u8 bg_line[160]) {
     u8 lcdc = memory_read_8(ppu->p_mem, LCDC);
     if (!(lcdc & (1 << 1))) return;
 
     int sprite_h = (lcdc & (1 << 2)) ? 16 : 8;
-    int drawn = 0;
+    
+    typedef struct {
+        int idx;
+        int x;
+    } SpriteInfo;
+    
+    SpriteInfo sprites[10];
+    int sprite_count = 0;
 
-    for (int i = 0; i < 40 && drawn < 10; i++) {
+    for (int i = 0; i < 40 && sprite_count < 10; i++) {
+        u16 o = OAM_BASE + i * 4;
+        int sy = memory_read_8(ppu->p_mem, o) - 16;
+        int sx = memory_read_8(ppu->p_mem, o + 1) - 8;
+
+        if (ppu->ly >= sy && ppu->ly < sy + sprite_h) {
+            sprites[sprite_count].idx = i;
+            sprites[sprite_count].x = sx;
+            sprite_count++;
+        }
+    }
+
+    for (int i = 0; i < sprite_count - 1; i++) {
+        for (int j = i + 1; j < sprite_count; j++) {
+            bool swap = false;
+            if (sprites[i].x > sprites[j].x) {
+                swap = true;
+            } else if (sprites[i].x == sprites[j].x && sprites[i].idx > sprites[j].idx) {
+                swap = true;
+            }
+            
+            if (swap) {
+                SpriteInfo temp = sprites[i];
+                sprites[i] = sprites[j];
+                sprites[j] = temp;
+            }
+        }
+    }
+
+    for (int s = sprite_count - 1; s >= 0; s--) {
+        int i = sprites[s].idx;
         u16 o = OAM_BASE + i * 4;
 
         int sy = memory_read_8(ppu->p_mem, o) - 16;
         int sx = memory_read_8(ppu->p_mem, o + 1) - 8;
         u8 tile = memory_read_8(ppu->p_mem, o + 2);
         u8 attr = memory_read_8(ppu->p_mem, o + 3);
-
-        if (ppu->ly < sy || ppu->ly >= sy + sprite_h) continue;
-        drawn++;
 
         bool flip_x = attr & (1 << 5);
         bool flip_y = attr & (1 << 6);
@@ -210,12 +210,10 @@ static void render_sprites(PPU *ppu, u8 bg_line[160]) {
 
             if (behind && bg_line[x] != 0) continue;
 
-            ppu->frame_buffer[ppu->ly][x] =
-                obj_palette(ppu, c, pal1);
+            ppu->frame_buffer[ppu->ly][x] = obj_palette(ppu, c, pal1);
         }
     }
 }
-
 
 static void render_scanline(PPU *ppu) {
     u8 bg_line[160] = {0};
@@ -225,79 +223,6 @@ static void render_scanline(PPU *ppu) {
 }
 
 
-static void render_bg_scanline(PPU *ppu) {
-    u8 lcdc = get_lcdc(ppu);
-
-    if (!(lcdc & 0x01)) {
-        for (int x = 0; x < SCREEN_WIDTH; x++)
-            ppu->frame_buffer[ppu->ly][x] = bg_palette_lookup(ppu, 0);
-        return;
-    }
-
-    u8 scx = ppu->latched_scx;
-    u8 scy = ppu->latched_scy;
-
-    bool win_enable = lcdc & (1 << 5);
-    u8 wy = memory_read_8(ppu->p_mem, WY);
-    u8 wx = memory_read_8(ppu->p_mem, WX);
-    int win_x = (int)wx - 7;
-
-    bool window_used_this_line = false;
-
-    for (int x = 0; x < SCREEN_WIDTH; x++) {
-
-        bool use_window =
-            win_enable &&
-            ppu->ly >= wy &&
-            x >= win_x;
-
-        u16 tile_map;
-        u8 px, py;
-
-        if (use_window) {
-            tile_map = (lcdc & (1 << 6)) ? TILE_MAP_1 : TILE_MAP_0;
-            px = x - win_x;
-            py = ppu->window_line;
-            window_used_this_line = true;
-        } else {
-            tile_map = (lcdc & 0x08) ? TILE_MAP_1 : TILE_MAP_0;
-            px = x + scx;
-            py = ppu->ly + scy;
-        }
-
-        u8 tile_x = px >> 3;
-        u8 tile_y = py >> 3;
-        u8 bit_x  = px & 7;
-        u8 bit_y  = py & 7;
-
-        u16 map_addr = tile_map + tile_y * 32 + tile_x;
-        u8 tile_id = memory_read_8(ppu->p_mem, map_addr);
-
-        u16 tile_addr;
-        if (lcdc & 0x10)
-            tile_addr = 0x8000 + tile_id * 16;
-        else
-            tile_addr = 0x9000 + ((s8)tile_id) * 16;
-
-        tile_addr += bit_y * 2;
-
-        u8 lo = memory_read_8(ppu->p_mem, tile_addr);
-        u8 hi = memory_read_8(ppu->p_mem, tile_addr + 1);
-
-        u8 bit = 7 - bit_x;
-        u8 color = ((hi >> bit) & 1) << 1 | ((lo >> bit) & 1);
-
-        ppu->frame_buffer[ppu->ly][x] =
-            bg_palette_lookup(ppu, color);
-    }
-
-    if (window_used_this_line)
-        ppu->window_line++;
-}
-
-/* =========================
-   PPU STEP
-   ========================= */
 
 void step_ppu(PPU *ppu, int cycles) {
     u8 lcdc = memory_read_8(ppu->p_mem, LCDC);
@@ -306,7 +231,9 @@ void step_ppu(PPU *ppu, int cycles) {
         ppu->mode = 0;
         ppu->ly = 0;
         ppu->window_line = 0;
+        ppu->m_cycles = 0;
         memory_write(ppu->p_mem, LY, 0);
+        stat_update(ppu);
         return;
     }
 
@@ -314,7 +241,7 @@ void step_ppu(PPU *ppu, int cycles) {
 
     switch (ppu->mode) {
 
-    case 2:
+    case 2:  
         if (ppu->m_cycles >= 20) {
             ppu->m_cycles -= 20;
             ppu->latched_scx = memory_read_8(ppu->p_mem, SCX);
@@ -325,7 +252,7 @@ void step_ppu(PPU *ppu, int cycles) {
         }
         break;
 
-    case 3:
+    case 3: 
         if (ppu->m_cycles >= 43) {
             ppu->m_cycles -= 43;
             render_scanline(ppu);
@@ -335,7 +262,7 @@ void step_ppu(PPU *ppu, int cycles) {
         }
         break;
 
-    case 0:
+    case 0:  
         if (ppu->m_cycles >= 51) {
             ppu->m_cycles -= 51;
             ppu->ly++;
@@ -343,29 +270,35 @@ void step_ppu(PPU *ppu, int cycles) {
 
             if (ppu->ly == 144) {
                 ppu->mode = 1;
+                stat_update(ppu);
+                stat_check(ppu);
                 request_interrupt(ppu->ih, VBlank);
                 present_framebuffer(ppu->draw_ctx, ppu->frame_buffer);
+                screen_event_loop(ppu->draw_ctx);
             } else {
                 ppu->mode = 2;
+                stat_update(ppu);
+                stat_check(ppu);
             }
-            stat_update(ppu);
-            stat_check(ppu);
         }
         break;
 
-    case 1:
+    case 1:  
         if (ppu->m_cycles >= 114) {
             ppu->m_cycles -= 114;
             ppu->ly++;
             memory_write(ppu->p_mem, LY, ppu->ly);
+            stat_update(ppu);
+            stat_check(ppu);
 
             if (ppu->ly >= 154) {
                 ppu->ly = 0;
                 ppu->window_line = 0;
+                memory_write(ppu->p_mem, LY, 0);
                 ppu->mode = 2;
+                stat_update(ppu);
+                stat_check(ppu);
             }
-            stat_update(ppu);
-            stat_check(ppu);
         }
         break;
     }
