@@ -28,6 +28,7 @@ typedef struct
     u8 ERAM[0x2000];
 }Memory;
 
+
 static inline u8 *get_address(Memory *p_mem, const u16 addr, const bool is_writing){
     if (addr<= 0x7FFF){
         // Cartridge Rom
@@ -35,6 +36,12 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr, const bool is_writi
             printf(" FROM CARTRIDGE ROM AT: %.4xH\n]",addr);
         #endif
         return &p_mem->p_cartidge->rom[addr];
+    }
+
+    //DMA
+    if (addr == 0xFF46 && is_writing == true){
+        printf("DMA\n");
+        exit(0);
     }
 
     if (addr == 0xFF04 && is_writing == true){
@@ -162,9 +169,24 @@ static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
 }
 
 
+static inline void dma_start(Memory *mem, u8 value) {
+    u16 src = value << 8;
+
+    for (int i = 0; i < 160; i++) {
+        *get_address(mem,0xFE00 + i,true) = *get_address(mem,src+i,false);
+    }
+}
+
 
 static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
+    //DMA
+    if (addr == 0xFF46){
+       dma_start(p_mem,data);
+       return;
+    }
+
     u8 *add =  get_address(p_mem,addr,true);
+    
     if (add == NULL){
         printf("Writing Unimplemented memory location %x and data %x\n",addr, data);
         exit(0);

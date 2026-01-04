@@ -12,6 +12,9 @@
 #define FILE_TO_LOAD "test_roms/tetris.gb"
 
 #define SCALE 4
+#define SCALE 4
+#define FPS 60
+#define FRAME_TIME_MS (1000 / FPS)
 
 // testing remove this TODO
 static const uint8_t dmg_palette[4][3] = {
@@ -22,82 +25,77 @@ static const uint8_t dmg_palette[4][3] = {
 };
 
 
-struct DrawingContext{
-    SDL_Window* window;
-    SDL_Renderer* renderer;
-} ;
+struct DrawingContext {
+    SDL_Window   *window;
+    SDL_Renderer *renderer;
+    SDL_Texture  *texture;
+};
 
 
-
-void screen_event_loop(struct DrawingContext *context) {
+void screen_event_loop(struct DrawingContext *ctx) {
     SDL_Event e;
-    
-    while (SDL_PollEvent(&e) != 0) {
-        if (e.type == SDL_QUIT) {
-			printf("Escape pressed. Signalling quit.\n");
-            cleanup_screen(context);
-			exit(1);
+    while (SDL_PollEvent(&e)) {
+        if (e.type == SDL_QUIT ||
+           (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)) {
+            cleanup_screen(ctx);
+            exit(0);
         }
-
-        if (e.type == SDL_KEYDOWN) {
-            if (e.key.keysym.sym == SDLK_ESCAPE) {
-                printf("Escape pressed. Signalling quit.\n");
-                cleanup_screen(context);
-				exit(1);
-            }
-        }
-        
     }
-    }
-
-void cleanup_screen(struct DrawingContext *context) {
-    if (context->renderer != NULL) {
-        SDL_DestroyRenderer(context->renderer);
-    }
-    if (context->window != NULL) {
-        SDL_DestroyWindow(context->window);
-    }
-    SDL_Quit();
 }
 
-struct DrawingContext *make_screen(){
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("[ERROR] SDL could not initialize! SDL Error: %s\n", SDL_GetError());
+
+void cleanup_screen(struct DrawingContext *ctx) {
+    if (!ctx) return;
+
+    if (ctx->texture)  SDL_DestroyTexture(ctx->texture);
+    if (ctx->renderer) SDL_DestroyRenderer(ctx->renderer);
+    if (ctx->window)   SDL_DestroyWindow(ctx->window);
+
+    SDL_Quit();
+    free(ctx);
+}
+
+struct DrawingContext *make_screen(void) {
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        fprintf(stderr, "SDL init failed: %s\n", SDL_GetError());
         exit(1);
     }
-	struct DrawingContext *context = (struct DrawingContext *) malloc(sizeof(struct DrawingContext));
 
-	context->window = SDL_CreateWindow(
+    struct DrawingContext *ctx = calloc(1, sizeof(*ctx));
+
+    ctx->window = SDL_CreateWindow(
         "Khel-Babu",
-        SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED,
-        SCREEN_WIDTH*SCALE,
-        SCREEN_HEIGHT*SCALE,
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
+        SCREEN_WIDTH * SCALE,
+        SCREEN_HEIGHT * SCALE,
         SDL_WINDOW_SHOWN
     );
 
-	if (context->window == NULL) {
-        printf("[ERROR] Window could not be created! SDL Error: %s\n", SDL_GetError());
-        SDL_Quit(); 
+    ctx->renderer = SDL_CreateRenderer(
+        ctx->window,
+        -1,
+        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
+    );
+
+    ctx->texture = SDL_CreateTexture(
+        ctx->renderer,
+        SDL_PIXELFORMAT_RGB24,
+        SDL_TEXTUREACCESS_STREAMING,
+        SCREEN_WIDTH,
+        SCREEN_HEIGHT
+    );
+
+    if (!ctx->window || !ctx->renderer || !ctx->texture) {
+        fprintf(stderr, "SDL creation failed: %s\n", SDL_GetError());
+        cleanup_screen(ctx);
         exit(1);
     }
 
-	context->renderer = SDL_CreateRenderer(
-        context->window, 
-		-1,
-        SDL_RENDERER_ACCELERATED
-    );
-
-	if (context->renderer == NULL) {
-        printf("[ERROR] Renderer could not be created! SDL Error: %s\n", SDL_GetError());
-        SDL_DestroyWindow(context->window);
-        SDL_Quit();
-        context->window = NULL;
-		exit(1);
-    };
-
-	return context;
+    return ctx;
 }
+
+
 
 /* Uses the OS to read a rom (.bin) file and return the contents */
 Cartridge load_cartridge() {
@@ -150,31 +148,37 @@ Cartridge load_cartridge() {
 		 
 }
 
-void present_framebuffer( struct DrawingContext *ctx, u8 framebuffer[144][160]
-){
-    SDL_Renderer *r = ctx->renderer;
+void present_framebuffer(
+    struct DrawingContext *ctx,
+    u8 framebuffer[144][160]
+) {
+    static uint8_t pixels[144][160][3];
 
-    SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
-    SDL_RenderClear(r);
-
+    /* Convert palette indices → RGB */
     for (int y = 0; y < 144; y++) {
         for (int x = 0; x < 160; x++) {
-
-            u8 color = framebuffer[y][x] & 3;
-            const u8 *rgb = dmg_palette[color];
-
-            SDL_SetRenderDrawColor(r, rgb[0], rgb[1], rgb[2], 255);
-
-            SDL_Rect pixel = {
-                x * SCALE,
-                y * SCALE,
-                SCALE,
-                SCALE
-            };
-
-            SDL_RenderFillRect(r, &pixel);
+            u8 c = framebuffer[y][x] & 3;
+            pixels[y][x][0] = dmg_palette[c][0];
+            pixels[y][x][1] = dmg_palette[c][1];
+            pixels[y][x][2] = dmg_palette[c][2];
         }
     }
 
-    SDL_RenderPresent(r);
+    SDL_UpdateTexture(
+        ctx->texture,
+        NULL,
+        pixels,
+        SCREEN_WIDTH * 3
+    );
+
+    SDL_RenderClear(ctx->renderer);
+    SDL_RenderCopy(ctx->renderer, ctx->texture, NULL, NULL);
+    SDL_RenderPresent(ctx->renderer);
+
+    /* Frame pacing */
+    static Uint32 last = 0;
+    Uint32 now = SDL_GetTicks();
+    if (now - last < FRAME_TIME_MS)
+        SDL_Delay(FRAME_TIME_MS - (now - last));
+    last = SDL_GetTicks();
 }

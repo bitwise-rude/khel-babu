@@ -12,6 +12,12 @@ typedef struct{
     u8 latched_scx;
     u8 latched_scy;
     
+    bool lcd_prev;
+    bool stat_irq_line;
+
+    u8 window_line;
+
+    
     struct DrawingContext *draw_ctx;
 }PPU;
 
