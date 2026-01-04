@@ -56,7 +56,6 @@ int handle_interrupt(InterruptManager *im){
                 
                 // rst is the same thing  as calling
                 rst_helper(im->cpu, IVT[i]);
-                im->cpu->cycles += 5;
                 printf("INTERRUPT CALLING\n");
                 return 5;
             }

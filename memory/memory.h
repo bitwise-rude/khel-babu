@@ -25,6 +25,7 @@ typedef struct
     u8 OAM[0xA0];
     u8 NU[0xFEFF-0xFEA0];
     u8 IE;
+    u8 ERAM[0x2000];
 }Memory;
 
 static inline u8 *get_address(Memory *p_mem, const u16 addr, const bool is_writing){
@@ -46,6 +47,11 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr, const bool is_writi
     if (addr >= 0x8000 && addr <=0x9FFF){
         // VRAM
         return &p_mem -> VRAM[addr - 0x8000];
+    }
+
+    if (addr >=0xa000 && addr <=0xbfff){
+        // external ram
+        return &p_mem -> ERAM[addr - 0xa000];
     }
 
     else if (addr >= 0xC000 && addr <= 0xDFFF){

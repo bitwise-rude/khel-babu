@@ -2398,6 +2398,7 @@ static Opcode opcodes[256]= {
 // steps the CPU
 int step_cpu(CPU *cpu){
     if(cpu->is_halted){
+        printf("halted\n");
         return 1;
     }
     // logging

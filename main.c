@@ -61,9 +61,14 @@ int main(){
 
 	for (int i = 0; i<=ITERATION; i++){
 		cpu_cycles = step_cpu(&cpu);
-		step_ppu(&ppu,cpu_cycles);
-		int_cycles = handle_interrupt(&im);
 		timer_step(&tm,cpu_cycles);
+		step_ppu(&ppu,cpu_cycles);
+
+		int_cycles = handle_interrupt(&im);
+
+		if(int_cycles){
+		timer_step(&tm,int_cycles);
+		step_ppu(&ppu,int_cycles);}
 	}
 
 	free(cartridge.rom);
