@@ -9,6 +9,14 @@ You can contribute by contacting me through my FB profile in github
 or through e-mail: dareludum@gmail.com
 > Thank You
 
+## Checkpoint #3
+THe ppu is almost complete now. The DMG acid test is passed with a clear face and its really cool. I will working on the controls now, tetris also goes to the menu which is really good 
+
+![Tetirs](images/tetris.png)
+
+This is the passed, dmg acid test
+![ACID](images/acid.png)
+
 ## Checkpoint #2
 The ppu is made to be bare minimum for now. I am having a really hard time with timers, interrupts and PPU but i have got all of the blarrg test to pass (except 2), some games that don't rely on cycle accurate timings show up and it feels cool to look at them, will be taking a break.(don't know for how long). This is DR.mario on Khel-Babu
 ![Dr.Mario](images/image.png)
