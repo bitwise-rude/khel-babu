@@ -37,15 +37,24 @@ int main(){
 
 	verify_cartridge_header(cartridge.rom);
 
+		Jpad jp = {	};
+	struct DrawingContext *dr_ctx=make_screen(&jp);
+	
 	// make memory from cartidge
-	Memory memory = (Memory) {.p_cartidge = &cartridge};
+	Memory memory = (Memory) {
+		.p_cartidge = &cartridge,
+		.IO = {
+			[0] = 0xCF,
+		},
+		.ctx = &jp,
+	};
 
 	CPU cpu = init_cpu(&memory);
 
 	InterruptManager im = make_interrupt_manager(&cpu);
 	Timer_Manager tm = make_timer(&cpu, &im);
 
-	struct DrawingContext *dr_ctx=make_screen();;
+
 
 	PPU ppu = {
 		.p_mem = &memory,

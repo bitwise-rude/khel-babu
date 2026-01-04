@@ -23,6 +23,7 @@ struct DrawingContext {
     SDL_Window   *window;
     SDL_Renderer *renderer;
     SDL_Texture  *texture;  
+    Jpad *jp;
 };
 
 void screen_event_loop(struct DrawingContext *context) {
@@ -35,12 +36,21 @@ void screen_event_loop(struct DrawingContext *context) {
             exit(0);
         }
 
-        if (e.type == SDL_KEYDOWN) {
-            if (e.key.keysym.sym == SDLK_ESCAPE) {
-                printf("Escape pressed. Signalling quit.\n");
-                cleanup_screen(context);
-                exit(0);
-            }
+        if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
+
+            bool pressed = (e.type == SDL_KEYDOWN);
+
+            switch (e.key.keysym.sym) {
+            case SDLK_UP:     context->jp->up     = pressed; break;
+            case SDLK_DOWN:   context->jp->down   = pressed; break;
+            case SDLK_LEFT:   context->jp->left   = pressed; break;
+            case SDLK_RIGHT:  context->jp->right  = pressed; break;
+
+            case SDLK_a:      context->jp->a      = pressed; break;
+            case SDLK_b:      context->jp->b      = pressed; break;
+            case SDLK_z: context->jp->select  = pressed; break;
+            case SDLK_x: context->jp->start = pressed; break;
+        }
         }
     }
 }
@@ -59,7 +69,7 @@ void cleanup_screen(struct DrawingContext *context) {
     free(context);
 }
 
-struct DrawingContext *make_screen() {
+struct DrawingContext *make_screen(Jpad *jpp) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("[ERROR] SDL could not initialize! SDL Error: %s\n", SDL_GetError());
         exit(1);
@@ -109,6 +119,8 @@ struct DrawingContext *make_screen() {
         cleanup_screen(context);
         exit(1);
     }
+
+    context->jp = jpp;
 
     return context;
 }

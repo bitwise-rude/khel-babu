@@ -18,6 +18,7 @@ typedef uint16_t  u16;
 typedef struct
 {
     Cartridge *p_cartidge;
+    Jpad *ctx;
     u8 WRAM[0x2000];
     u8 IO[0x80];
     u8 HRAM[0x7F];
@@ -37,6 +38,7 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr, const bool is_writi
         #endif
         return &p_mem->p_cartidge->rom[addr];
     }
+
 
     // TODO: implement cotroller keypads now return ff
 
@@ -156,10 +158,28 @@ static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
         printf("READING ");
     #endif
 
+    if (addr == 0xFF00) {
+    u8 val = p_mem->IO[0];   // whatever was written
+    u8 res = 0xC0 | (val & 0x30) | 0x0F;
 
-    if (addr == 0xFF00){
-        return 0xFF; // TODO fir joypad
+    // buttons
+    if (!(val & 0b00100000)) {
+        if (p_mem->ctx->a)      res &= ~(1 << 0);
+        if (p_mem->ctx->b)      res &= ~(1 << 1);
+        if (p_mem->ctx->select) res &= ~(1 << 2);
+        if (p_mem->ctx->start)  res &= ~(1 << 3);
     }
+
+    // d pad
+    if (!(val & 0b00010000)) {
+        if (p_mem->ctx->right) res &= ~(1 << 0);
+        if (p_mem->ctx->left)  res &= ~(1 << 1);
+        if (p_mem->ctx->up)    res &= ~(1 << 2);
+        if (p_mem->ctx->down)  res &= ~(1 << 3);
+    }
+
+    return res;
+}
 
     if (addr == 0xFF44){
         #ifdef LOG
@@ -191,6 +211,7 @@ static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
        dma_start(p_mem,data);
        return;
     }
+
 
     u8 *add =  get_address(p_mem,addr,true);
     

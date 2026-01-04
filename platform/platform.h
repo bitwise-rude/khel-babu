@@ -24,6 +24,18 @@ typedef uint16_t u16;
 
 struct DrawingContext;
 
+typedef struct{
+    u8 up;
+    u8 down;
+    u8 left;
+    u8 right;
+
+    u8 a;
+    u8 b;
+    u8 start;
+    u8 select;
+} Jpad;
+
 typedef struct {
     u8 *rom;
     size_t length;
