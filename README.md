@@ -9,6 +9,9 @@ You can contribute by contacting me through my FB profile in github
 or through e-mail: dareludum@gmail.com
 > Thank You
 
+- I did the FF41 in mem read, write and inside the PPU idk what is that
+- I didn't trigger interrupt when joypad is clicked.
+
 ## Checkpoint #3
 THe ppu is almost complete now. The DMG acid test is passed with a clear face and its really cool. I will working on the controls now, tetris also goes to the menu which is really good 
 
