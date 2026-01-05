@@ -30,6 +30,7 @@ typedef struct
     u8 ERAM[0x2000];
 
     bool is_div_reset;
+    u8 stat_shadow;
 }Memory;
 
 
@@ -122,6 +123,7 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr, const bool is_writi
         return &p_mem -> IO[addr -0xFF00];
     }
 
+
     else if (addr == 0xFF42 || addr == 0xFF43){
         // scrolling not implemented
         return &p_mem -> IO[addr - 0xFF00];
@@ -179,6 +181,11 @@ static inline u8  memory_read_8(Memory *p_mem, const u16 addr){
     return res;
 }
 
+    else if(addr == 0xFF41){
+        // FF41 is owned by both cpu and ppu
+        return p_mem->stat_shadow;
+    }
+
     if (addr == 0xFF44){
         #ifdef LOG
             return 0x90; // TODO: change this just for experiment
@@ -204,6 +211,12 @@ static inline void dma_start(Memory *mem, u8 value) {
 
 
 static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
+    if (addr == 0xFF41){
+         u8 old = p_mem->stat_shadow;
+        u8 masked = (old & 0x07) | (data & 0x78);
+        p_mem->stat_shadow = masked;
+        return;
+    }
     //DMA
     if (addr == 0xFF46){
        dma_start(p_mem,data);

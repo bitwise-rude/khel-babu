@@ -49,23 +49,24 @@ static void stat_update(PPU *ppu) {
     else
         stat &= ~(1 << 2);
 
-    memory_write(ppu->p_mem, STAT, stat);
+    ppu->p_mem->stat_shadow = stat;
 }
 
+
 static void stat_check(PPU *ppu) {
-    u8 stat = memory_read_8(ppu->p_mem, STAT);
-    bool req = false;
+    bool old = ppu->stat_irq_line;
+    bool now = false;
+    u8 stat = ppu->p_mem->stat_shadow;
 
-    if (ppu->mode == 0 && (stat & (1 << 3))) req = true;  // HBlank
-    if (ppu->mode == 1 && (stat & (1 << 4))) req = true;  // VBlank
-    if (ppu->mode == 2 && (stat & (1 << 5))) req = true;  // OAM
-    if ((stat & (1 << 6)) && (stat & (1 << 2))) req = true;  // LYC=LY
+    if (ppu->mode == 0 && (stat & (1 << 3))) now = true;
+    if (ppu->mode == 1 && (stat & (1 << 4))) now = true;
+    if (ppu->mode == 2 && (stat & (1 << 5))) now = true;
+    if ((stat & (1 << 6)) && (stat & (1 << 2))) now = true;
 
-    // rising edge is a bitch
-    if (req && !ppu->stat_irq_line)
+    if (!old && now)
         request_interrupt(ppu->ih, LCD);
 
-    ppu->stat_irq_line = req;
+    ppu->stat_irq_line = now;
 }
 
 
@@ -226,6 +227,7 @@ static void render_scanline(PPU *ppu) {
 
 void step_ppu(PPU *ppu, int cycles) {
     u8 lcdc = memory_read_8(ppu->p_mem, LCDC);
+    screen_event_loop(ppu->draw_ctx); // remvo
 
     if (!(lcdc & 0x80)) {
         ppu->mode = 0;
