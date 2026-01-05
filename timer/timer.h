@@ -46,13 +46,14 @@ void inc_mem(Timer_Manager *t, u16 addr){
 void timer_reset_div(Timer_Manager *t){
     // Writing any value to DIV resets the internal counter
     t->div_counter = 0;
-    u8 *div = get_address(t->cpu->p_memory, DIV, true);
-    *div = 0;
+    t->cpu->p_memory->IO[4] =  0;
 }
 
 
 void timer_step(Timer_Manager *t, int m_cycles)
 {
+    if (t->cpu->p_memory->is_div_reset == true) timer_reset_div(t);
+
     for (int i = 0; i < m_cycles * 4; i++) {
 
         t->div_counter++;

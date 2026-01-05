@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 
-#define FILE_TO_LOAD "test_roms/tetris.gb"
+#define FILE_TO_LOAD "test_roms/8.gb"
 #define SCALE 4
 
 static const uint8_t dmg_palette[4][3] = {

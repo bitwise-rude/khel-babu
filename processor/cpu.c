@@ -137,6 +137,9 @@ void rst_helper(CPU *cpu, u16 addr){
 
 /* This  can be made better */
 static inline void ld_r_r_helper(u8 *dst, u8 *src){ *dst = *src; }
+static inline void ld_m_r_helper(CPU *cpu, u16 dst, u8 src){
+    memory_write(cpu->p_memory,dst,src);
+}
 
 /* Following flag return status of  corresponding Flag */
 static inline int flag_z(const CPU *cpu) {return (cpu->AF.lo & ZERO) != 0;}
@@ -762,12 +765,12 @@ static inline void ld_e_m(CPU *cpu){   ld_r_r_helper(&cpu->DE.lo, get_address(cp
 static inline void ld_l_m(CPU *cpu){   ld_r_r_helper(&cpu->HL.lo, get_address(cpu->p_memory, cpu->HL.val,false));}
 static inline void ld_a_m(CPU *cpu){   ld_r_r_helper(&cpu->AF.hi, get_address(cpu->p_memory, cpu->HL.val,false));}
 
-static inline void ld_m_b(CPU *cpu){   ld_r_r_helper(get_address(cpu->p_memory, cpu->HL.val,true), &cpu->BC.hi);}
-static inline void ld_m_a(CPU *cpu){   ld_r_r_helper(get_address(cpu->p_memory, cpu->HL.val,true), &cpu->AF.hi);}
-static inline void ld_m_d(CPU *cpu){   ld_r_r_helper(get_address(cpu->p_memory, cpu->HL.val,true), &cpu->DE.hi);}
-static inline void ld_m_h(CPU *cpu){   ld_r_r_helper(get_address(cpu->p_memory, cpu->HL.val,true), &cpu->HL.hi);}
-static inline void ld_m_c(CPU *cpu){   ld_r_r_helper(get_address(cpu->p_memory, cpu->HL.val,true), &cpu->BC.lo);}
-static inline void ld_m_e(CPU *cpu){   ld_r_r_helper(get_address(cpu->p_memory, cpu->HL.val,true), &cpu->DE.lo);}
+static inline void ld_m_b(CPU *cpu){    ld_m_r_helper(cpu, cpu->HL.val,cpu->BC.hi);}
+static inline void ld_m_a(CPU *cpu){    ld_m_r_helper(cpu, cpu->HL.val,cpu->AF.hi);}
+static inline void ld_m_d(CPU *cpu){    ld_m_r_helper(cpu, cpu->HL.val,cpu->DE.hi);}
+static inline void ld_m_h(CPU *cpu){    ld_m_r_helper(cpu, cpu->HL.val,cpu->HL.hi);}
+static inline void ld_m_c(CPU *cpu){    ld_m_r_helper(cpu, cpu->HL.val,cpu->BC.lo);}
+static inline void ld_m_e(CPU *cpu){    ld_m_r_helper(cpu, cpu->HL.val,cpu->DE.lo);}
 
 static inline void ld_sp_hl(CPU *cpu){ cpu->SP.val = cpu->HL.val;}
 
@@ -836,17 +839,17 @@ static inline void ld_a_a16(CPU *cpu){
     cpu->AF.hi = memory_read_8(cpu->p_memory, adderess);
 }
 
-static inline void ld_m_l(CPU *cpu){ ld_r_r_helper(get_address(cpu->p_memory, cpu->HL.val,true), &cpu->HL.lo);}
-static inline void ld_bc_a(CPU *cpu){ ld_r_r_helper(get_address(cpu->p_memory, cpu->BC.val,true), &cpu->AF.hi);}
-static inline void ld_de_a(CPU *cpu){ ld_r_r_helper(get_address(cpu->p_memory, cpu->DE.val,true), &cpu->AF.hi);}
+static inline void ld_m_l(CPU *cpu){    ld_m_r_helper(cpu, cpu->HL.val,cpu->HL.lo);}
+static inline void ld_bc_a(CPU *cpu){    ld_m_r_helper(cpu, cpu->BC.val,cpu->AF.hi);}
+static inline void ld_de_a(CPU *cpu){    ld_m_r_helper(cpu, cpu->DE.val,cpu->AF.hi);}
 
 static inline void ld_hlp_a(CPU *cpu){
-    ld_r_r_helper(get_address(cpu->p_memory, cpu->HL.val,true), &cpu->AF.hi);
+    ld_m_r_helper(cpu, cpu->HL.val,cpu->AF.hi);
     cpu->HL.val ++;
 }
 
 static inline void ld_hlm_a(CPU *cpu){
-    ld_r_r_helper(get_address(cpu->p_memory, cpu->HL.val,true), &cpu->AF.hi);
+    ld_m_r_helper(cpu, cpu->HL.val,cpu->AF.hi);
     cpu->HL.val --;
 }
 

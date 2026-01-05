@@ -19,6 +19,7 @@ typedef struct
 {
     Cartridge *p_cartidge;
     Jpad *ctx;
+
     u8 WRAM[0x2000];
     u8 IO[0x80];
     u8 HRAM[0x7F];
@@ -27,6 +28,8 @@ typedef struct
     u8 NU[0xFEFF-0xFEA0];
     u8 IE;
     u8 ERAM[0x2000];
+
+    bool is_div_reset;
 }Memory;
 
 
@@ -39,10 +42,6 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr, const bool is_writi
         return &p_mem->p_cartidge->rom[addr];
     }
 
-
-    // TODO: implement cotroller keypads now return ff
-
-
     //DMA
     if (addr == 0xFF46 && is_writing == true){
         printf("DMA\n");
@@ -51,9 +50,7 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr, const bool is_writi
 
     if (addr == 0xFF04 && is_writing == true){
         // writing to div resets it to 0
-        printf("DIV CAME\n QUITTING MEMORY.h");
-        exit(1);
-        return 0;
+        p_mem->is_div_reset = true;
     }
 
     if (addr >= 0x8000 && addr <=0x9FFF){
@@ -210,6 +207,13 @@ static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
     if (addr == 0xFF46){
        dma_start(p_mem,data);
        return;
+    }
+
+    if (addr == 0xFF04){
+        // writing to div resets it to 0
+        printf("DIV CAME\n QUITTING MEMORY.h");
+        exit(1);
+        return ;
     }
 
 
