@@ -50,7 +50,8 @@ static inline u8 *get_address(Memory *p_mem, const u16 addr, const bool is_writi
 
     if (addr == 0xFF04 && is_writing == true){
         // writing to div resets it to 0
-        p_mem->is_div_reset = true;
+        printf("DIV CAME\n");
+        exit(0);
     }
 
     if (addr >= 0x8000 && addr <=0x9FFF){
@@ -211,8 +212,7 @@ static inline void memory_write(Memory *p_mem, const u16 addr, const u8 data){
 
     if (addr == 0xFF04){
         // writing to div resets it to 0
-        printf("DIV CAME\n QUITTING MEMORY.h");
-        exit(1);
+        p_mem->is_div_reset = true;
         return ;
     }
 

@@ -274,7 +274,7 @@ void step_ppu(PPU *ppu, int cycles) {
                 stat_check(ppu);
                 request_interrupt(ppu->ih, VBlank);
                 present_framebuffer(ppu->draw_ctx, ppu->frame_buffer);
-                screen_event_loop(ppu->draw_ctx);
+                // screen_event_loop(ppu->draw_ctx);
             } else {
                 ppu->mode = 2;
                 stat_update(ppu);
@@ -302,4 +302,5 @@ void step_ppu(PPU *ppu, int cycles) {
         }
         break;
     }
+    screen_event_loop(ppu->draw_ctx);
 }
